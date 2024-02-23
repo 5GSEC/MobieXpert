@@ -1,0 +1,15 @@
+{
+  "mobiflow": {
+    "sqlite3_db_path": "/etc/mobiflow/mobiflow.db",
+    "mongo_db_name": "mobiflow",
+    "mongo_db_port": 27017,
+    "rpc_query_interval": 500
+  },
+
+  "pbest": {
+    "pbest_csv_file": "/usr/local/input.csv",
+    "pbest_exec_name": "./main",
+    "pbest_log_path": "/usr/local/pbest.out",
+    "maintenance_time_threshold": 5000
+  }
+}

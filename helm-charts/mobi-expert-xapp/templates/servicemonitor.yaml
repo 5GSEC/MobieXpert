@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2021-present Open Networking Foundation <info@opennetworking.org>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if index .Values "enable-prometheus" }}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "mobi-expert-xapp.fullname" . }}
+  labels:
+    app: {{ template "mobi-expert-xapp.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  {{- include "mobi-expert-xapp.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "mobi-expert-xapp.selectorLabels" . | nindent 6 }}
+  endpoints:
+  - port: http
+    path: /metrics
+    scheme: HTTP
+
+{{- end }}
+
