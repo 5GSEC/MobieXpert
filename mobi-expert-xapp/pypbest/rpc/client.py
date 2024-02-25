@@ -11,10 +11,10 @@ class MobiFlowRpcClient:
 
     def check_server(self):
         if self.rpc_ip is None or self.rpc_ip == "":
-            logging.error(f"Invalid RPC address f{self.rpc_ip}!")
+            logging.error(f"Invalid RPC address {self.rpc_ip}!")
             return False
         if self.rpc_port is None or self.rpc_port < 0:
-            logging.error(f"Invalid RPC address f{self.rpc_port}!")
+            logging.error(f"Invalid RPC address {self.rpc_port}!")
             return False
         return True
 

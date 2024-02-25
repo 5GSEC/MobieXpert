@@ -48,7 +48,7 @@ void Engine_Maintenance_Event(char *token) {
 void Engine_UE_MobiFlow_Event(char *token) {
     struct ue_mobiflow ue;
     int index = 0;
-    int totalFeature = 21; // TODO change this index when updating MobiFlow
+    int totalFeature = 22; // TODO change this index when updating MobiFlow
     while(token != NULL)
     {
         switch (index) {
