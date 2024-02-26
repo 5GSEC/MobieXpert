@@ -87,7 +87,7 @@ If your `rules.pbest` file contains syntax error, an exception will occur and fa
 We have provided a default helm chart for deploying MobieXpert on the ONOS RIC via [Kubernetes](https://kubernetes.io/):
 
 ```
-./install_secsm-xapp.sh
+./install_xapp.sh
 ```
 
 ## Uninstall MobieXpert xApp
@@ -95,7 +95,7 @@ We have provided a default helm chart for deploying MobieXpert on the ONOS RIC v
 Undeploy the MobieXpert xApp from Kubernetes:
 
 ```
-./uninstall_secsm-xapp.sh
+./uninstall_xapp.sh
 ```
 
 
