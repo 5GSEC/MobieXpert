@@ -33,16 +33,21 @@ sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
 ## IDS Programming with MobieXpert
 
 MobieXpert’s programming capability is powered by the Production-Based Expert System Toolset ([P-BEST](https://ieeexplore.ieee.org/document/766911)) language.
-The IDS rule file is located at [mobi-expert-xapp/pbest/expert/rules.pbest](./mobi-expert-xapp/pbest/expert/rules.pbest).
+The IDS rule file is located at [mobi-expert-xapp/pbest/expert/rules.pbest](./mobi-expert-xapp/pbest/expert/rules.pbest). It has already integrated the L3 attack detection rules described in our original paper.
 
 To get started with the P-BEST syntax, please refer to the P-BEST original paper: [Detecting computer and network misuse through the production-based expert system toolset (P-BEST)](https://ieeexplore.ieee.org/document/766911).
+
+During compilation and building, the P-BEST rule file will be translated into C executables by the `pbcc` compiler. The executable listens to the input from a local `csv` file that is constantly updated with MobiFlow streams.
+
+
+## Example Walkthrough
 
 Below we provided an example of how [BTS Resource Depletion Attack](https://ieeexplore.ieee.org/document/8835363) could be detected by programming a P-BEST rule set which has been already integrated into [mobi-expert-xapp/pbest/expert/rules.pbest](./mobi-expert-xapp/pbest/expert/rules.pbest) from [line 433-536](./mobi-expert-xapp/pbest/expert/rules.pbest#L433).
 Our original [paper](https://web.cse.ohio-state.edu/~wen.423/papers/5G-Spector-NDSS24.pdf) also describes how this rule sets were developed.
 
 ![alt text](./figure.png)
 
-For example, the following P-BEST rule defined in `rules.pbest`  serves as an auxiliary rule for detecting BTS resource depletion attack:
+The following P-BEST rule defined in `rules.pbest`  serves as an auxiliary rule for detecting BTS resource depletion attack:
 
 ```
 rule[bts_depletion_add_first_transient_ue_5g:
@@ -63,7 +68,40 @@ rule[bts_depletion_add_first_transient_ue_5g:
 
 This rule based on certain user-defined `xtype` structures in the P-BEST file. It determines whether a UE is a `transient UE` that explicits a layer-3 RRC DoS pattern.
 From the rule, it leverages the MobiFlow features, i.e., the UE timers, and checks whether the session has been stuck at NAS registering state exceeding a time threshold `BTS_DEPLETION_REG_INIT_TIME_THRESHOLD`.
-Then this rule will be triggered to add a transient UE instance and update the counters. The accumulated counters will then be evaluated to determine whether to trigger a BTS resource depletion attack alert.
+Then this rule will be triggered to add a transient UE instance and update the counters. The accumulated counters will then be evaluated to determine whether to trigger a BTS resource depletion attack alert, based on the rule below:
+
+```
+rule[bts_depletion_generate_event:
+    [+tran_ue_cntr: transient_ue_counter^BTS_RESOURCE_DEPLETION]
+    [?|tran_ue_cntr.value > 'BTS_DEPLETION_UE_THRESHOLD]
+==>
+    [$|tran_ue_cntr: BTS_RESOURCE_DEPLETION]
+    [+event|id = 'event_id_cntr,
+	        name = "BTS Resource Depletion",
+            ts = tran_ue_cntr.ts,
+            bs_id = tran_ue_cntr.bs_id,
+            ue = 0
+    ]
+    [!|'event_id_cntr += 1 ]
+    [!|debugprintf("[BTS Resource Depletion][GENERATE_EVENT] Event detected for bs %d\n", tran_ue_cntr.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "BTS Resource Depletion", tran_ue_cntr.bs_id, tran_ue_cntr.ts, tran_ue_cntr.value)]
+]
+```
+
+Additionally, all the defined `ptype` in P-BEST need to be cleaned up in time. The rule below uses a timer-based clean up strategy to release the transient UEs to avoid filing an false alarm:
+
+```
+rule[bts_depletion_release_transient_ue:
+    [+tran_ue:transient_ue]
+    [+tran_ue_cntr:transient_ue_counter|bs_id == tran_ue.bs_id]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - tran_ue.ts) > 'BTS_DEPLETION_RELEASE_TIME_THRESHOLD]
+==>
+    [/tran_ue_cntr|value -= 1]
+    [-|tran_ue]
+    [!|debugprintf("[BTS Resource Depletion][RELEASE_TRANSIENT_UE] Removing transient UE %d/%x\n", tran_ue.rnti, tran_ue.rnti)]
+]
+```
 
 ## Build the MobieXpert xApp
 
