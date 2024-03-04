@@ -2,8 +2,9 @@
 
 OS_ARCH	      = $(shell ../get_os_syms.csh OS_ARCH)
 OS_SYSN       = $(shell ../get_os_syms.csh OS_SYSN)
-OS_NAME       = $(shell ../get_os_syms.csh OS_NAME_FULL)
-OS_DIR        = $(OS_NAME)
+#OS_NAME       = $(shell ../get_os_syms.csh OS_NAME_FULL)
+#OS_DIR        = $(OS_NAME)
+OS_DIR        = $(OS_SYSN)-$(OS_ARCH)
 
 # Directory structure macros -- should only need to change # the value of the ROOT macro
 IDES            = ../libpb/
