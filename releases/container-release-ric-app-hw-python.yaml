@@ -1,0 +1,10 @@
+---
+distribution_type: container
+container_release_tag: 0.0.1
+container_pull_registry: nexus3.o-ran-sc.org:10004
+container_push_registry: nexus3.o-ran-sc.org:10002
+project: 5GSEC/MobieXpert
+ref: 8cf17dc3de639da53d034608c8a7efb3295d0ea0
+containers:
+    - name: mobiexpert-xapp
+      version: 0.0.1

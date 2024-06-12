@@ -1,4 +1,2 @@
-#!/usr/bin/env bash
-set -e
-sudo make image/mobi-expert-xapp
-sudo docker push localhost:5000/mobi-expert-xapp
+#!/bin/bash
+sudo docker build -t 5gsec.se-ran.org:10004/xapp/mobiexpert-xapp:0.0.1 .

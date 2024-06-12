@@ -1,0 +1,24 @@
+apiVersion: v1
+entries:
+  mobieXpert-xapp:
+  - apiVersion: v1
+    appVersion: "1.0"
+    created: "2024-06-12T19:26:14.0237861Z"
+    description: Standard xApp Helm Chart
+    digest: 32d49ceb1239863547206254b9ab2b4818fc1ceede8729dea4653d5ea46e3d6c
+    name: mobieXpert-xapp
+    urls:
+    - charts/mobieXpert-xapp-0.0.1.tgz
+    version: 0.0.1
+  mobiexpert-xapp:
+  - apiVersion: v1
+    appVersion: "1.0"
+    created: "2024-06-12T19:34:26.094712621Z"
+    description: Standard xApp Helm Chart
+    digest: 5f4968952bac0f7f74e6ec5d757e6558edaec7472eabaccb146e91f6cd3b96f3
+    name: mobiexpert-xapp
+    urls:
+    - charts/mobiexpert-xapp-0.0.1.tgz
+    version: 0.0.1
+generated: "2024-06-12T19:34:26Z"
+serverInfo: {}
