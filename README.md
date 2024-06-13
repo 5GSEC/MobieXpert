@@ -116,11 +116,17 @@ If your `rules.pbest` file contains syntax error, an exception will occur and fa
 
 ## Install the MobieXpert xApp
 
-We have provided a default helm chart for deploying MobieXpert on the OSC RIC via [Kubernetes](https://kubernetes.io/).
-
-First, onboard the xApp. You need to set up the proper environment with the `dms_cli` tool. Following the instructions here: https://github.com/5GSEC/OAI-5G-Docker/blob/master/O-RAN%20SC%20RIC%20Deployment%20Guide.md#mobiexpert-xapp. Then, simply run the script to deploy the xApp under the `ricxapp` K8S namespace in the nRT-RIC.
+First, onboard the xApp. You need to set up the proper environment with the `dms_cli` tool. Following the instructions here: https://github.com/5GSEC/OAI-5G-Docker/blob/master/O-RAN%20SC%20RIC%20Deployment%20Guide.md#mobiexpert-xapp. Execute the following to onboard the xApp:
 
 ```
+cd init
+sudo -E dms_cli onboard --config_file_path=config-file.json --shcema_file_path=schema.json
+```
+
+Then, simply run the script to deploy the xApp under the `ricxapp` K8S namespace in the nRT-RIC.
+
+```
+cd ..
 ./deploy.sh
 ```
 
