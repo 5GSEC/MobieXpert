@@ -58,6 +58,13 @@
     },
     "db" : {
             "waitForSdl": false
+    },
+    "pbest": {
+        "csv_file": "/usr/local/bin/input.csv",
+        "pb_log_file": "/usr/local/bin/pbest_out",
+        "pb_exec_path": "/usr/local/bin/main",
+        "query_interval": 500,
+        "maintenance_time_threshold": 5000
     }
 }
 

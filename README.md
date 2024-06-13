@@ -16,24 +16,18 @@ MobieXpert is an essential part of 5G-Spector. To get started and learn more abo
 [paper](https://web.cse.ohio-state.edu/~wen.423/papers/5G-Spector-NDSS24.pdf) in NDSS'24
 and the [5G-Spector](https://github.com/5GSEC/5G-Spector) git repository.
 
-MobieXpert is dedicated for the [ONOS RIC](https://docs.onosproject.org/v0.6.0/onos-cli/docs/cli/onos_ric/) on [SD-RAN](https://docs.sd-ran.org/master/index.html).
-It is developed based on the [ONOS RIC's python SDK](https://github.com/onosproject/onos-ric-sdk-py) and guidance from the exemplar [ONOS RAN Intelligent Controller xApps](https://github.com/onosproject/onos-ric-python-apps/)  authored in Python programming language.
-MobieXpert uses gRPC calls to obtain MobiFlow telemetry stream from the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor).
+MobieXpert is dedicated for the [OSC RIC](https://wiki.o-ran-sc.org/display/ORAN).
+It is developed based on the [OSC RIC's python SDK](https://github.com/o-ran-sc/ric-plt-xapp-frame-py).
+MobieXpert obtains MobiFlow telemetry stream from the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) via the Shared Data Layer (SDL) database.
 
 ## Prerequisite
 
-MobieXpert is built as a Docker container. Refer to the official tutorial (https://docs.docker.com/engine/install/) to install and set up the Docker environment.
-
-Create a local docker registry to host docker images: 
-
-```
-sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
-```
+Deploy OSC's nearRT RIC and the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) before deploying MobieXpert. Detailed tutorial can be found at https://github.com/5GSEC/OAI-5G-Docker/blob/master/O-RAN%20SC%20RIC%20Deployment%20Guide.md.
 
 ## IDS Programming with MobieXpert
 
 MobieXpert’s programming capability is powered by the Production-Based Expert System Toolset ([P-BEST](https://ieeexplore.ieee.org/document/766911)) language.
-The IDS rule file is located at [mobi-expert-xapp/pbest/expert/rules.pbest](./mobi-expert-xapp/pbest/expert/rules.pbest). It has already integrated the L3 attack detection rules described in our original paper.
+The IDS rule file is located at [src/pbest/expert/rules.pbest](./src/pbest/expert/rules.pbest). It has already integrated the L3 attack detection rules described in our original paper.
 
 To get started with the P-BEST syntax, please refer to the P-BEST original paper: [Detecting computer and network misuse through the production-based expert system toolset (P-BEST)](https://ieeexplore.ieee.org/document/766911).
 
@@ -42,7 +36,7 @@ During compilation and building, the P-BEST rule file will be translated into C 
 
 ## Example Walkthrough
 
-Below we provided an example of how [BTS Resource Depletion Attack](https://ieeexplore.ieee.org/document/8835363) could be detected by programming a P-BEST rule set which has been already integrated into [mobi-expert-xapp/pbest/expert/rules.pbest](./mobi-expert-xapp/pbest/expert/rules.pbest) from [line 433-536](./mobi-expert-xapp/pbest/expert/rules.pbest#L433).
+Below we provided an example of how [BTS Resource Depletion Attack](https://ieeexplore.ieee.org/document/8835363) could be detected by programming a P-BEST rule set which has been already integrated into [src/pbest/expert/rules.pbest](./src/pbest/expert/rules.pbest) from [line 433-536](./src/pbest/expert/rules.pbest#L433).
 Our original [paper](https://web.cse.ohio-state.edu/~wen.423/papers/5G-Spector-NDSS24.pdf) also describes how this rule sets were developed.
 
 ![alt text](./figure.png)
@@ -105,7 +99,7 @@ rule[bts_depletion_release_transient_ue:
 
 ## Build the MobieXpert xApp
 
-After the new rules are integrated into [mobi-expert-xapp/pbest/expert/rules.pbest](./mobi-expert-xapp/pbest/expert/rules.pbest), you can use our Docker build script to build the MobiExpert xApp: 
+After the new rules are integrated into [src/pbest/expert/rules.pbest](./src/pbest/expert/rules.pbest), you can use our Docker build script to build the MobiExpert xApp: 
 
 ```
 ./build.sh
@@ -115,17 +109,17 @@ After a successful build, the xApp will be compiled as a standalone Docker conta
 
 ```
 $ docker images
-localhost:5000/mobi-expert-xapp           latest    722a04c343b8   9 days ago     255MB
+5gsec.se-ran.org:10004/xapp/mobiexpert-xapp               0.0.1        39cc298cbb97   11 minutes ago   232MB
 ```
 
 If your `rules.pbest` file contains syntax error, an exception will occur and fail the build process.
 
 ## Install the MobieXpert xApp
 
-We have provided a default helm chart for deploying MobieXpert on the ONOS RIC via [Kubernetes](https://kubernetes.io/):
+We have provided a default helm chart for deploying MobieXpert on the OSC RIC via [Kubernetes](https://kubernetes.io/):
 
 ```
-./install_xapp.sh
+./deploy.sh
 ```
 
 ## Uninstall MobieXpert xApp
@@ -133,7 +127,7 @@ We have provided a default helm chart for deploying MobieXpert on the ONOS RIC v
 Undeploy the MobieXpert xApp from Kubernetes:
 
 ```
-./uninstall_xapp.sh
+./undeploy.sh
 ```
 
 

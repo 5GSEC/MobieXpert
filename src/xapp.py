@@ -16,17 +16,19 @@
 #
 # ==================================================================================
 import requests
+import json
 from os import getenv
 from ricxappframe.xapp_frame import RMRXapp, rmr
 from .utils.constants import Constants
 from .manager import *
 from .handler import *
 from mdclogpy import Level
+from .pypbest import MobiFlowLoader, PBest
 
 class MobieXpertXapp:
 
     __XAPP_CONFIG_PATH = "/tmp/init/config-file.json"
-    __XAPP_NAME = "mobieXpert-xapp"
+    __XAPP_NAME = "mobiexpert-xapp"
     __XAPP_VERSION = "0.0.1"
     __XAPP_NAME_SPACE = "ricxapp"
     __PLT_NAME_SPACE = "ricplt"
@@ -62,16 +64,28 @@ class MobieXpertXapp:
         self._register(rmr_xapp)
 
         # obtain nodeb list for subscription
-        enb_list = sdl_mgr.get_enb_list()
-        for enb_nb_identity in enb_list:
-            inventory_name = enb_nb_identity.inventory_name
-            nodeb_info_json = sdl_mgr.get_nodeb_info_by_inventory_name(inventory_name)
-
         gnb_list = sdl_mgr.get_gnb_list()
         for gnb_nb_identity in gnb_list:
             inventory_name = gnb_nb_identity.inventory_name
             connection_status = gnb_nb_identity.connection_status
             nodeb_info_json = sdl_mgr.get_nodeb_info_by_inventory_name(inventory_name)
+
+        # load xApp config
+        with open(self.__XAPP_CONFIG_PATH, 'r') as config_file:
+            config_json = json.loads(config_file.read())
+            csv_file = config_json["pbest"]["csv_file"]
+            pb_log_file = config_json["pbest"]["pb_log_file"]
+            pb_exec_path = config_json["pbest"]["pb_exec_path"]
+            query_interval = int(config_json["pbest"]["query_interval"])
+            maintenance_time_threshold = int(config_json["pbest"]["maintenance_time_threshold"])
+
+        # Run MobiFlow reader
+        mf_loader = MobiFlowLoader(rmr_xapp, sdl_mgr, query_interval, csv_file, maintenance_time_threshold)
+        mf_loader.run()
+
+        # init PBest instance
+        pb = PBest(pb_exec_path, pb_log_file, csv_file)
+        pb.run()
 
     def _register(self, rmr_xapp):
         """

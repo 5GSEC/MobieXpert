@@ -34,7 +34,7 @@ setup(
     author='SE-RAN',
     author_email='team@5gsec.com',
     python_requires='>=3.8',
-    install_requires=["ricxappframe>=1.1.1,<2.3.0"],
+    install_requires=["ricxappframe==3.2.2", "inotify_simple", "msgpack", "mdclogpy", "ricsdl>=3.0.0,<4.0.0", "requests", "protobuf<3.21.0", "inotify"],
     entry_points={"console_scripts": ["run-xapp.py=src.main:launchXapp"]},  # adds a magical entrypoint for Docker
     data_files=[("", ["LICENSE.txt"])],
 )

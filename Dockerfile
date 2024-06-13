@@ -13,20 +13,38 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 # ==================================================================================
-FROM python:3.8-alpine
 
-# copy rmr libraries from builder image in lieu of an Alpine package
-COPY --from=nexus3.o-ran-sc.org:10002/o-ran-sc/bldr-alpine3-rmr:4.0.5 /usr/local/lib64/librmr* /usr/local/lib64/
+FROM python:3.8-slim as stretch
+
+# sdl needs gcc
+RUN apt-get update && apt-get -y install bash gcc musl-dev wget
+RUN ln -s /usr/lib/x86_64-linux-musl/libc.so /lib/libc.musl-x86_64.so.1
+RUN apt-get -y install build-essential flex csh
+
+# install rmr e2ap
+ARG rmr_version=4.9.4
+ARG e2ap_version=1.1.0
+
+# download rmr and e2ap libraries from package cloud
+RUN wget -nv --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/rmr_${rmr_version}_amd64.deb/download.deb
+RUN wget -nv --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/rmr-dev_${rmr_version}_amd64.deb/download.deb
+
+RUN wget -nv --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/riclibe2ap_${e2ap_version}_amd64.deb/download.deb
+RUN wget -nv --content-disposition https://packagecloud.io/o-ran-sc/release/packages/debian/stretch/riclibe2ap-dev_${e2ap_version}_amd64.deb/download.deb
+
+RUN dpkg -i rmr_${rmr_version}_amd64.deb
+RUN dpkg -i rmr-dev_${rmr_version}_amd64.deb
+
+RUN dpkg -i riclibe2ap_${e2ap_version}_amd64.deb
+RUN dpkg -i riclibe2ap-dev_${e2ap_version}_amd64.deb
+
 # RMR setup
 RUN mkdir -p /opt/route/
 COPY init/test_route.rt /opt/route/test_route.rt
 ENV LD_LIBRARY_PATH /usr/local/lib/:/usr/local/lib64
 ENV RMR_SEED_RT /opt/route/test_route.rt
 # install a legacy ver of betterproto TODO: upgrade later
-RUN pip install betterproto==2.0.0b4 
-
-# sdl needs gcc
-RUN apk update && apk add gcc musl-dev bash
+# RUN pip install betterproto==2.0.0b4 
 
 # Install
 COPY setup.py /tmp
@@ -34,6 +52,11 @@ COPY README.md /tmp
 COPY LICENSE.txt /tmp/
 COPY src/ /tmp/src
 COPY init/ /tmp/init
+
+# prepare pbest environment
+RUN cd /tmp/src/pbest/expert && make clean && make
+RUN cp /tmp/src/pbest/expert/main /usr/local/bin/main
+
 RUN pip install /tmp
 
 # Env - TODO- Configmap
@@ -46,5 +69,3 @@ ENV DBAAS_SERVICE_HOST=service-ricplt-dbaas-tcp.ricplt.svc.cluster.local
 
 #Run
 CMD run-xapp.py
-
-
