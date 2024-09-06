@@ -1,5 +1,15 @@
 apiVersion: v1
 entries:
+  deepwatch-xapp:
+  - apiVersion: v1
+    appVersion: "1.0"
+    created: "2024-06-14T20:12:01.722779488Z"
+    description: Standard xApp Helm Chart
+    digest: f426bf40d4f22c76de8164e00f98e9dc6a84614f509cfba30e112ebd6a42d6df
+    name: deepwatch-xapp
+    urls:
+    - charts/deepwatch-xapp-0.0.1.tgz
+    version: 0.0.1
   mobieXpert-xapp:
   - apiVersion: v1
     appVersion: "1.0"
@@ -20,5 +30,25 @@ entries:
     urls:
     - charts/mobiexpert-xapp-0.0.1.tgz
     version: 0.0.1
-generated: "2024-06-12T19:34:26Z"
+  mobiflow-auditor:
+  - apiVersion: v1
+    appVersion: "1.0"
+    created: "2024-06-12T20:53:13.18914345Z"
+    description: Standard xApp Helm Chart
+    digest: 69aee9f28fc0fea0a316670f980ddbdd6d36e42bf1b1160983c7c23b8dc0ab62
+    name: mobiflow-auditor
+    urls:
+    - charts/mobiflow-auditor-0.0.1.tgz
+    version: 0.0.1
+  template-xapp:
+  - apiVersion: v1
+    appVersion: "1.0"
+    created: "2024-06-13T03:21:34.197357887Z"
+    description: Standard xApp Helm Chart
+    digest: 7181f709ae83486f447697557e92b96bd4eac9d5e2cc9ae8da74a39f9327fe7a
+    name: template-xapp
+    urls:
+    - charts/template-xapp-0.0.1.tgz
+    version: 0.0.1
+generated: "2024-06-14T20:12:02Z"
 serverInfo: {}

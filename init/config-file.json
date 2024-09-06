@@ -5,8 +5,8 @@
         {
             "name": "mobiexpert-xapp",
             "image": {
-                "registry": "5gsec.se-ran.org:10004",
-                "name": "xapp/mobiexpert-xapp",
+                "registry": "127.0.0.1:5000",
+                "name": "mobiexpert-xapp",
                 "tag": "0.0.1"
             }
         }
