@@ -20,9 +20,12 @@ MobieXpert is dedicated for the [OSC RIC](https://wiki.o-ran-sc.org/display/ORAN
 It is developed based on the [OSC RIC's python SDK](https://github.com/o-ran-sc/ric-plt-xapp-frame-py).
 MobieXpert obtains MobiFlow telemetry stream from the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) via the Shared Data Layer (SDL) database.
 
+We also have an old version at branch `master` implemented for the [ONOS RIC](https://docs.onosproject.org/v0.6.0/onos-cli/docs/cli/onos_ric/) on [SD-RAN](https://docs.sd-ran.org/master/index.html). It was used as part of the [5G-Spector](https://github.com/5GSEC/5G-Spector) artifact but not recommended any more since the ONOS RIC xApp python SDK is no longer being maintained.
+
+
 ## Prerequisite
 
-Deploy OSC's nearRT RIC and the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) before deploying MobieXpert. Detailed tutorial can be found at https://github.com/5GSEC/OAI-5G-Docker/blob/master/O-RAN%20SC%20RIC%20Deployment%20Guide.md.
+Deploy OSC's nearRT RIC and the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) before deploying MobieXpert. A detailed tutorial can be found at [https://github.com/5GSEC/OAI-5G-Docker/blob/master/O-RAN%20SC%20RIC%20Deployment%20Guide.md](https://github.com/5GSEC/5G-Spector/wiki/O%E2%80%90RAN-SC-RIC-Deployment-Guide).
 
 ## IDS Programming with MobieXpert
 
@@ -109,7 +112,7 @@ After a successful build, the xApp will be compiled as a standalone Docker conta
 
 ```
 $ docker images
-5gsec.se-ran.org:10004/xapp/mobiexpert-xapp               0.0.1        39cc298cbb97   11 minutes ago   232MB
+localhost:5000/mobiexpert-xapp               0.0.1        39cc298cbb97   11 minutes ago   232MB
 ```
 
 If your `rules.pbest` file contains syntax error, an exception will occur and fail the build process.
