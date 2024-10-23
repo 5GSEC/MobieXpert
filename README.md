@@ -42,7 +42,7 @@ During compilation and building, the P-BEST rule file will be translated into C 
 Below we provided an example of how [BTS Resource Depletion Attack](https://ieeexplore.ieee.org/document/8835363) could be detected by programming a P-BEST rule set which has been already integrated into [src/pbest/expert/rules.pbest](./src/pbest/expert/rules.pbest) from [line 433-536](./src/pbest/expert/rules.pbest#L433).
 Our original [paper](https://web.cse.ohio-state.edu/~wen.423/papers/5G-Spector-NDSS24.pdf) also describes how this rule sets were developed.
 
-![alt text](./figure.png)
+![alt text](https://github.com/5GSEC/MobieXpert/blob/osc/figure.png)
 
 The following P-BEST rule defined in `rules.pbest`  serves as an auxiliary rule for detecting BTS resource depletion attack:
 
