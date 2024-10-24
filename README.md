@@ -25,7 +25,24 @@ We also have an old version at branch `master` implemented for the [ONOS RIC](ht
 
 ## Prerequisite
 
-Deploy OSC's nearRT RIC and the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) before deploying MobieXpert. A detailed tutorial can be found at [https://github.com/5GSEC/OAI-5G-Docker/blob/master/O-RAN%20SC%20RIC%20Deployment%20Guide.md](https://github.com/5GSEC/5G-Spector/wiki/O%E2%80%90RAN-SC-RIC-Deployment-Guide).
+### Local Docker registry
+
+MobieXpert is built from source as a local Docker container. Refer to the official tutorial (https://docs.docker.com/engine/install/) to install and set up the Docker environment.
+
+Create a local docker registry to host docker images: 
+
+```
+sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```
+
+### OSC nRT RIC
+
+Before deploying the xApp, make sure the OSC nRT-RIC is deployed by following this [tutorial](https://github.com/5GSEC/5G-Spector/wiki/O%E2%80%90RAN-SC-RIC-Deployment-Guide#deploy-the-osc-near-rt-ric).
+
+### MobiFlow Auditor xApp
+
+MobieXpert directly acquires security telemetry from the SDL generated from the [MobiFlow Auditor xApp](https://github.com/5GSEC/MobiFlow-Auditor) xApp. Following the instructions to prepare the environment and collect data from a 5G network.
+
 
 ## IDS Programming with MobieXpert
 
