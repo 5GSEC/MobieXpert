@@ -59,74 +59,73 @@ void Engine_UE_MobiFlow_Event(char *token) {
                 ue.msg_id = atoi(token);
                 break;
             case 2:
-                ue.timestamp = strtod (token, NULL);
-                break;
-            case 3:
                 ue.mobiflow_ver = token;
                 break;
-            case 4:
+            case 3:
                 ue.generator_name = token;
                 break;
+            case 4:
+                ue.timestamp = strtod(token, NULL);
+                break;
             case 5:
-                ue.bs_id = atoi(token);
+                ue.nr_cell_id = strtod(token, NULL);
                 break;
             case 6:
-                ue.rnti = atoi(token);
+                ue.gnb_cu_ue_f1ap_id = atoi(token);
                 break;
             case 7:
-                ue.tmsi = token;
+                ue.gnb_du_ue_f1ap_id = atoi(token);
                 break;
             case 8:
-                ue.imsi = token;
+                ue.rnti = atoi(token);
                 break;
             case 9:
-                ue.imei = token;
-                break;
-            case 10:
-                ue.cipher_alg = atoi(token);
+                ue.rrc_cipher_alg = atoi(token);
                 break;
             case 11:
-                ue.integrity_alg = atoi(token);
+                ue.rrc_integrity_alg = atoi(token);
                 break;
             case 12:
-                ue.establish_cause = atoi(token);
+                ue.nas_integrity_alg = atoi(token);
                 break;
             case 13:
-                ue.msg = token;
+                ue.nas_integrity_alg = atoi(token);
                 break;
             case 14:
-                ue.rrc_state = atoi(token);
+                ue.rrc_msg = token;
                 break;
             case 15:
-                ue.nas_state = atoi(token);
+                ue.nas_msg = token;
                 break;
             case 16:
-                ue.sec_state = atoi(token);
+                ue.rrc_state = atoi(token);
                 break;
             case 17:
-                ue.emm_cause = atoi(token);
+                ue.nas_state = atoi(token);
                 break;
             case 18:
-                ue.rrc_initial_timer = strtod (token, NULL);
+                ue.rrc_sec_state = atoi(token);
                 break;
             case 19:
-                ue.rrc_inactive_timer = strtod (token, NULL);
+                ue.reserved_field_1 = strtod(token, NULL);
                 break;
             case 20:
-                ue.nas_initial_timer = strtod (token, NULL);
+                ue.reserved_field_2 = strtod(token, NULL);
                 break;
             case 21:
-                ue.nas_inactive_timer = strtod (token, NULL);
+                ue.reserved_field_3 = strtod(token, NULL);
                 break;
+           
         }
         ++index;
         token = strtok(NULL, delimiter);
     }
     if (ue.rnti != 0 && index == totalFeature) {
-        assert_ue_mobiflow(pb_rules, &pb_tsnum, ue.msg_type, ue.msg_id, ue.timestamp, ue.mobiflow_ver, ue.generator_name,
-                           ue.bs_id, ue.rnti, ue.tmsi, ue.imsi, ue.imei, ue.cipher_alg, ue.integrity_alg, ue.establish_cause,
-                           ue.msg, ue.rrc_state, ue.nas_state, ue.sec_state, ue.emm_cause,
-                           ue.rrc_initial_timer, ue.rrc_inactive_timer, ue.nas_initial_timer, ue.nas_inactive_timer, 1.0, "");
+        assert_ue_mobiflow(pb_rules, &pb_tsnum, ue.msg_type, ue.msg_id, ue.mobiflow_ver, ue.generator_name, ue.timestamp,
+                           ue.nr_cell_id, ue.gnb_cu_ue_f1ap_id, ue.gnb_du_ue_f1ap_id, ue.rnti, 
+                           ue.rrc_cipher_alg, ue.rrc_integrity_alg, ue.nas_cipher_alg, ue.nas_integrity_alg,
+                           ue.rrc_msg, ue.nas_msg, ue.rrc_state, ue.nas_state, ue.rrc_sec_state,
+                           ue.reserved_field_1, ue.reserved_field_2, ue.reserved_field_3, 1.0, "");
         engine(pb_rules, &pb_tsnum);
     }
 }
@@ -144,7 +143,7 @@ void Engine_BS_MobiFlow_Event(char *token) {
                 bs.msg_id = atoi(token);
                 break;
             case 2:
-                bs.timestamp = strtod (token, NULL);
+                bs.timestamp = strtod(token, NULL);
                 break;
             case 3:
                 bs.mobiflow_ver = token;
@@ -153,7 +152,7 @@ void Engine_BS_MobiFlow_Event(char *token) {
                 bs.generator_name = token;
                 break;
             case 5:
-                bs.bs_id = atoi(token);
+                bs.nr_cell_id = strtod(token, NULL);
                 break;
             case 6:
                 bs.mcc = token;
@@ -165,33 +164,30 @@ void Engine_BS_MobiFlow_Event(char *token) {
                 bs.tac = token;
                 break;
             case 9:
-                bs.cell_id = token;
-                break;
-            case 10:
                 bs.report_period = atoi(token);
                 break;
-            case 11:
+            case 10:
                 bs.connected_ue_cnt = atoi(token);
                 break;
-            case 12:
+            case 11:
                 bs.idle_ue_cnt = atoi(token);
                 break;
-            case 13:
+            case 12:
                 bs.max_ue_cnt = atoi(token);
                 break;
-            case 14:
-                bs.initial_timer = strtod (token, NULL);
+            case 13:
+                bs.initial_timer = strtod(token, NULL);
                 break;
-            case 15:
-                bs.inactive_timer = strtod (token, NULL);
+            case 14:
+                bs.inactive_timer = strtod(token, NULL);
                 break;
         }
         ++index;
         token = strtok(NULL, delimiter);
     }
-    if (bs.bs_id != -1 && index == totalFeature) {
+    if (bs.nr_cell_id != -1 && index == totalFeature) {
         assert_bs_mobiflow(pb_rules, &pb_tsnum, bs.msg_type, bs.msg_id, bs.timestamp, bs.mobiflow_ver, bs.generator_name,
-                           bs.bs_id, bs.mcc, bs.mnc, bs.tac, bs.cell_id, bs.report_period,
+                           bs.nr_cell_id, bs.mcc, bs.mnc, bs.tac, bs.report_period,
                            bs.connected_ue_cnt, bs.idle_ue_cnt, bs.max_ue_cnt, bs.initial_timer, bs.inactive_timer, 1.0, "");
         engine(pb_rules, &pb_tsnum);
     }

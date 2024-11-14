@@ -1,0 +1,1016 @@
+```````````````````````````````````````````````````````````````````
+`  EMERALD mobiflow Sample File
+```````````````````````````````````````````````````````````````````
+
+
+{
+/******************* C Variables *******************/
+
+#define _Mobiflow_
+#include "strings.h"
+#include <stdlib.h>
+#include <stdarg.h>
+#include <sys/time.h>
+
+int DEBUG = 1;
+int VERBOSE = 0;
+int Report_ID_Tag = 1;
+
+int UE_EXPIRE_TIME = 30000;
+int BS_EXPIRE_TIME = 30000;
+int EVENT_EXPIRE_TIME = 600000;
+int UE_SESSION_EXPIRE_TIME = 30000;
+int TMSI_EXPIRE_TIME = 3600000;
+
+int BTS_DEPLETION_UE_THRESHOLD = 2;
+int BTS_DEPLETION_TRANSIENT_TIME_THRESHOLD = 7000;
+int BTS_DEPLETION_RELEASE_TIME_THRESHOLD = 10000;
+int BTS_DEPLETION_EVENT_EXPIRE_TIME = 30000;
+int BTS_DEPLETION_REG_INIT_TIME_THRESHOLD = 1000;
+
+int ptype_cntr = 0;
+int event_id_cntr = 0;
+int ue_session_id_cntr = 0;
+int UE_MSG_TRACK_COUNTER = 5;
+
+int UNSOLICITED_MSG_EVENT_EXPIRE_TIME = 10000;
+
+/******************* C Utility Functions *******************/
+int verboseprintf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    if (VERBOSE) {
+        printf("[VERBOSE] ");
+        vprintf(fmt, args);
+        fflush (stdout);
+    }
+    va_end(args);
+    return 0;
+}
+
+int debugprintf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    if (DEBUG) {
+        printf("[DEBUG] ");
+        vprintf(fmt, args);
+        fflush (stdout);
+    }
+    va_end(args);
+    return 0;
+}
+
+int eventprintf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    printf("[EVENT] ");
+    vprintf(fmt, args);
+    fflush (stdout);
+    va_end(args);
+    return 0;
+}
+
+int eventprintfjson(int id, const char *name, int bs, double ts, int ue) {
+    if (strcmp(name, "BTS Resource Depletion") == 0)
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %f, \"Number of DoS UE\": %d}\n", id, name, bs, ts, ue);
+    else
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %f, \"Affected UE ID\": %d}\n", id, name, bs, ts, ue);
+}
+
+}
+
+
+```````````````````````````````````````````````````````````````````
+`              S T A R T     P B E S T    D E C L A R A T I O N S
+```````````````````````````````````````````````````````````````````
+
+```````````````````````````````````````````````````````````````````
+`` Local C Variable declarations
+```````````````````````````````````````````````````````````````````
+`` control variables
+xtype[DEBUG:			int]
+xtype[VERBOSE:			int]
+xtype[Banner:			string]
+xtype[Report_ID_Tag: 		int]
+
+`` administrative rules
+xtype[event_id_cntr: int]
+xtype[ue_session_id_cntr: int]
+xtype[ptype_cntr: int]
+xtype[UE_MSG_TRACK_COUNTER: int]
+
+xtype[UE_EXPIRE_TIME: int]
+xtype[BS_EXPIRE_TIME: int]
+xtype[EVENT_EXPIRE_TIME: int]
+xtype[UE_SESSION_EXPIRE_TIME: int]
+
+`` BTS depletion attack detection rules
+xtype[BTS_DEPLETION_UE_THRESHOLD: int]
+xtype[BTS_DEPLETION_TRANSIENT_TIME_THRESHOLD: int]
+xtype[BTS_DEPLETION_RELEASE_TIME_THRESHOLD: int]
+xtype[BTS_DEPLETION_EVENT_EXPIRE_TIME: int]
+xtype[BTS_DEPLETION_REG_INIT_TIME_THRESHOLD: int]
+
+xtype[TMSI_EXPIRE_TIME: int]
+
+xtype[UNSOLICITED_MSG_EVENT_EXPIRE_TIME: int]
+
+`set[RRCState: 0, 1, 2, 3]   `INACTIVE, RRC_IDLE, RRC_CONNECTED, RRC_RECONGIFURED
+`set[EmmState: 0, 1, 2]      `EMM_REGISTERING, EMM_REGISTERED, EMM_DEREGISTERED
+`set[SecState: 0, 1]         `SEC_CONTEXT_NOT_EXIST, SEC_CONTEXT_EXIST
+
+````````````````````````````````````````````````````````````````````
+`` Local C functions
+````````````````````````````````````````````````````````````````````
+`` C utility functions
+xtype[debugprintf:	    intfunc]
+xtype[verboseprintf:        intfunc]
+xtype[eventprintf:	    intfunc]
+xtype[eventprintfjson:	    intfunc]
+
+```````````````````````````````````````````````````````````````````
+` PBEST Variable and Fact Declarations
+```````````````````````````````````````````````````````````````````
+
+ptype[ue_mobiflow
+     msg_type: string,                 `| Msg hdr  - mobiflow type [UE, BS]
+     msg_id:int,                       `| Msg hdr  - unique mobiflow event ID
+     timestamp:double,                 `| Msg hdr  - timestamp (ms need)
+     mobiflow_ver:string,              `| Msg hdr  - version of Mobiflow
+     generator_name:string,            `| Msg hdr  - generator name (e.g., SECSM)
+     `````````````````````````````````````````````````````````
+     bs_id:int,                        `| UE meta  - basestation id
+     rnti:int,                         `| UE meta  - basestation type
+     tmsi:string,                      `| UE meta  - ue mtmsi
+     imsi:string,                      `| UE meta  - ue imsi
+     imei:string,                      `| UE meta  - ue imei
+     `````````````````````````````````````````````````````````
+     cipher_alg:int,                   `| UE stats  - cipher algorithm
+     integrity_alg:int,                `| UE stats  - integrity algorithm
+     establish_cause:int,              `| UE stats  - establishment cause
+     msg:string,                       `| UE stats  - RRC/NAS message
+     rrc_state:int,                    `| UE stats  - RRC state       [INACTIVE, RRC_IDLE, RRC_CONNECTED, RRC_RECONFIGURED]
+     nas_state:int,                    `| UE stats  - NAS state (EMM) [EMM_DEREGISTERED, EMM_REGISTERING, EMM_REGISTERED]
+     sec_state:int,                    `| UE stats  - security state  [SEC_CONTEXT_NOT_EXIST, SEC_CONTEXT_EXIST]
+     emm_cause:int,                    `| UE stats  - emm cause code
+     `````````````````````````````````````````````````````````
+     rrc_initial_timer:double,         `| UE timer  -
+     rrc_inactive_timer:double,        `| UE timer  -
+     nas_initial_timer:double,         `| UE timer  -
+     nas_inactive_timer:double         `| UE timer  -
+]
+
+
+ptype[bs_mobiflow
+     msg_type: string,                 `| Msg hdr  - mobiflow type [UE, BS]
+     msg_id:int,                       `| Msg hdr  - unique mobiflow event ID
+     timestamp:double,                 `| Msg hdr  - timestamp (ms need)
+     mobiflow_ver:string,              `| Msg hdr  - version of Mobiflow
+     generator_name:string,            `| Msg hdr  - generator name (e.g., SECSM)
+     `````````````````````````````````````````````````````````
+     bs_id:int,                        `| BS meta  - basestation id
+     mcc:string,                       `| BS meta  - mobile country code
+     mnc:string,                       `| BS meta  - mobile network code
+     tac:string,                       `| BS meta  - tracking area code
+     cell_id:string,                   `| BS meta  - cell Id
+     report_period:int,                `| BS meta  - report period (ms)
+     `````````````````````````````````````````````````````````
+     connected_ue_cnt:int,             `| BS stats  -
+     idle_ue_cnt:int,                  `| BS stats  -
+     max_ue_cnt:int,                   `| BS stats  -
+     `````````````````````````````````````````````````````````
+     initial_timer:double,             `| BS timer  -
+     inactive_timer:double             `| BS timer  -
+]
+
+ptype[maintenance_event ts: double]
+
+ptype[bs_counter  value: int]
+ptype[ue_counter  value: int]
+ptype[ts_event    value: double]
+
+``BTS_depletion attack
+ptype [transient_ue_counter
+       bs_id: int,
+       value: int,
+       ts: double
+]
+
+ptype [transient_ue
+       bs_id: int,
+       rnti: int,
+       ts: double
+]
+
+ptype [event
+       id: int,
+       name: string,
+       ts: double,
+       bs_id: int,
+       ue: int
+]
+
+
+
+```````````````````````````````````````````````````````````````````
+` PBEST Rules
+```````````````````````````````````````````````````````````````````
+```````````````````````````````````````````````````````````````````````
+`` Administrative rule set
+`` These rules should be executed first
+```````````````````````````````````````````````````````````````````````
+rule[INIT_eXpert_on_bs(#99):
+    [-ue_counter]
+    [-bs_counter]
+    [+bs_mobiflow]
+==>
+    [+ue_counter|value=0]
+    [+bs_counter|value=0]
+    [+ts_event|value=0]
+    [!| debugprintf("INIT_eXpert: Initialized\n")]
+    [-#INIT_eXpert_on_bs]
+    [-#INIT_eXpert_on_ue]
+]
+
+rule[INIT_eXpert_on_ue(#99):
+    [-ue_counter]
+    [-bs_counter]
+    [+ue_mobiflow]
+==>
+    [+ue_counter|value=0]
+    [+bs_counter|value=0]
+    [+ts_event|value=0]
+    [!| debugprintf("INIT_eXpert: Initialized\n")]
+    [-#INIT_eXpert_on_bs]
+    [-#INIT_eXpert_on_ue]
+]
+
+``````` Maintenance rule sets ``````
+rule[add_maintenance_event(#98):
+    [+m:maintenance_event^ADD_MAINTENANCE_EVENT]
+    [+ts_ev:ts_event]
+==>
+    [!|verboseprintf("add maintenance event\n")]
+    [/ts_ev|value = m.ts]
+]
+
+rule[release_maintenance_event:
+    [+m:maintenance_event]
+==>
+    [-|m]
+]
+
+``````` BS rule sets ```````
+
+rule[add_bs_mobiflow(#98):
+    [+bs_mf:bs_mobiflow^ADD_BS_MOBIFLOW]
+    [+bs_cntr:bs_counter]
+==>
+    [$|bs_mf:ADD_BS_MOBIFLOW]
+    [/bs_cntr|value += 1]
+    [!|debugprintf("add_bs_mobiflow: bs_mobiflow_count: %d\n", bs_cntr.value)]
+]
+
+rule[bs_mobiflow_update_ts:
+    [+bs_mf:bs_mobiflow]
+    [+ts_ev:ts_event]
+    [?|bs_mf.timestamp > ts_ev.value]
+==>
+    [/ts_ev|value = bs_mf.timestamp]
+]
+
+rule[remove_bs_mobiflow:
+    [+bs_mf:bs_mobiflow]
+    [+bs_cntr:bs_counter]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - bs_mf.timestamp) > 'BS_EXPIRE_TIME]
+==>
+    [/bs_cntr|value -= 1]
+    [!|debugprintf("remove bs mobiflow record: %d\n", bs_mf.msg_id)]
+    [-|bs_mf]
+]
+
+``````` UE rule sets ```````
+
+rule[add_ue_mobiflow(#98):
+    [+ue_mf:ue_mobiflow^ADD_UE_MOBIFLOW]
+    [+ue_cntr:ue_counter]
+==>
+    [$|ue_mf:ADD_UE_MOBIFLOW]
+    [/ue_cntr|value += 1]
+    [!|debugprintf("add_ue_mobiflow: ue_mobiflow_count: %d\n", ue_cntr.value)]
+]
+
+rule[ue_mobiflow_update_ts:
+    [+ue_mf:ue_mobiflow]
+    [+ts_ev:ts_event]
+    [?|ue_mf.timestamp > ts_ev.value]
+==>
+    [/ts_ev|value = ue_mf.timestamp]
+]
+
+rule[remove_ue_mobiflow:
+    [+ue_mf:ue_mobiflow]
+    [+ue_cntr:ue_counter]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - ue_mf.timestamp) > 'UE_EXPIRE_TIME]
+==>
+    [!|debugprintf("remove ue mobiflow record: %d\n", ue_mf.msg_id)]
+    [/ue_cntr|value -= 1]
+    [-|ue_mf]
+]
+
+``````` Event rule sets ```````
+
+rule[remove_event:
+    [+ev:event]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - ev.ts) > 'EVENT_EXPIRE_TIME]
+==>
+    [!|debugprintf("remove event: %d\n", ev.id)]
+    [-|ev]
+]
+
+``````` Live UE & RRC/NAS message tracking ```````
+
+ptype[ue_session
+      id:           int,
+      bs_id:        int,
+      rnti:         int,
+      tmsi:         string,
+      imsi:         string,
+      imei:         string,
+      rrc_state:    int,
+      nas_state:    int,
+      sec_state:    int,
+      msg_count:    int,
+      ts:           double
+]
+
+ptype[ue_msg
+      ue_session_id:   int,
+      msg_index:    int,
+      msg:          string,
+      ts:           double
+]
+
+
+`` rules for live UE sessions
+rule[add_ue_session(#97):
+    [+ue_mf:ue_mobiflow^UE_SESSION]
+    [-ue_session|bs_id == ue_mf.bs_id, rnti == ue_mf.rnti]
+==>
+    [+ue_session|id       = 'ue_session_id_cntr,
+                 bs_id    = ue_mf.bs_id,
+                 rnti     = ue_mf.rnti,
+                 tmsi     = ue_mf.tmsi,
+                 imsi     = ue_mf.imsi,
+                 imei     = ue_mf.imei,
+                 rrc_state = ue_mf.rrc_state,
+                 nas_state = ue_mf.nas_state,
+                 sec_state = ue_mf.sec_state,
+                 msg_count = 1,
+                 ts        = ue_mf.timestamp
+    ]
+    [+ue_msg|ue_session_id = 'ue_session_id_cntr,
+             msg_index  = 1,
+             msg        = ue_mf.msg,
+             ts         = ue_mf.timestamp
+    ]
+    [!|'ue_session_id_cntr += 1]
+    [!|debugprintf("Add UE session: %d\n", ue_mf.rnti)]
+    [$|ue_mf:UE_SESSION]
+]
+
+rule[update_ue_session(#97):
+    [+ue_mf:ue_mobiflow^UE_SESSION]
+    [+session:ue_session|bs_id == ue_mf.bs_id, rnti == ue_mf.rnti]
+==>
+    [+ue_msg|ue_session_id = session.id,
+             msg_index  = session.msg_count + 1,
+             msg        = ue_mf.msg,
+             ts         = ue_mf.timestamp
+    ]
+    [/session|msg_count += 1,
+              rrc_state = ue_mf.rrc_state,
+              nas_state = ue_mf.nas_state,
+              sec_state = ue_mf.sec_state,
+              ts        = ue_mf.timestamp
+    ]
+    [!|debugprintf("Update UE session: %d\n", session.rnti)]
+    [$|ue_mf:UE_SESSION]
+]
+
+
+rule[remove_ue_session:
+    [+session:ue_session]
+    [+ts_ev:ts_event]
+    [?|session.rrc_state < 2 && session.nas_state == 0]
+    [?|(ts_ev.value - session.ts) > 'UE_SESSION_EXPIRE_TIME]
+==>
+    [!|debugprintf("Remove UE session: %d at BS %d\n", session.rnti, session.bs_id)]
+    [-|session]
+]
+
+`` rules to UE message trace management
+rule[remove_ue_msg_1:
+    [+m:ue_msg]
+    [-ue_session|id == m.ue_session_id]
+==>
+    [!|verboseprintf("Remove UE msg for expired UE session\n")]
+    [-|m]
+]
+
+rule[remove_ue_msg_2:
+    [+m:ue_msg]
+    [+session:ue_session|id == m.ue_session_id]
+    [?|session.msg_count - m.msg_index >= 'UE_MSG_TRACK_COUNTER]
+==>
+    [!|verboseprintf("Remove UE msg for expired msg counter\n")]
+    [-|m]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` BTS resource depletion attack rule set
+```````````````````````````````````````````````````````````````````````
+rule[bts_depletion_first_transient_ue:
+    [+ue_mf:ue_mobiflow^TRANSIENT]
+    [?|ue_mf.rrc_state < 2]
+    [?|ue_mf.rrc_inactive_timer != 0 && ue_mf.rrc_initial_timer != 0]
+    [?|(ue_mf.rrc_inactive_timer - ue_mf.rrc_initial_timer) < 'BTS_DEPLETION_TRANSIENT_TIME_THRESHOLD]
+    [-transient_ue_counter|bs_id == ue_mf.bs_id]
+    [-transient_ue|bs_id == ue_mf.bs_id, rnti == ue_mf.rnti]
+==>
+    [+transient_ue_counter|bs_id = ue_mf.bs_id, value = 1, ts = ue_mf.timestamp]
+    [+transient_ue|bs_id = ue_mf.bs_id, rnti = ue_mf.rnti, ts = ue_mf.timestamp]
+    [$|ue_mf:TRANSIENT]
+    [!|debugprintf("[BTS Resource Depletion][ADD_FIRST_TRANSIENT_UE] Marking UE %d/%x as transient\n", ue_mf.rnti, ue_mf.rnti)]
+    [!|debugprintf("[BTS Resource Depletion][ADD_FIRST_TRANSIENT_UE] Transient UE counter of bs %d is %d\n", ue_mf.bs_id, 1)]
+]
+
+rule[bts_depletion_add_transient_ue:
+    [+ue_mf:ue_mobiflow^TRANSIENT]
+    [?|ue_mf.rrc_state < 2]
+    [?|ue_mf.rrc_inactive_timer != 0 && ue_mf.rrc_initial_timer != 0]
+    [?|(ue_mf.rrc_inactive_timer - ue_mf.rrc_initial_timer) < 'BTS_DEPLETION_TRANSIENT_TIME_THRESHOLD]
+    [+tran_ue_cntr:transient_ue_counter|bs_id == ue_mf.bs_id]
+    [-transient_ue|bs_id == ue_mf.bs_id, rnti == ue_mf.rnti]
+==>
+    [/tran_ue_cntr|value += 1, ts = ue_mf.timestamp]
+    [+transient_ue|bs_id = ue_mf.bs_id, rnti = ue_mf.rnti, ts = ue_mf.timestamp]
+    [$|ue_mf:TRANSIENT]
+    [!|debugprintf("[BTS Resource Depletion][ADD_TRANSIENT_UE] Marking UE %d/%x as transient\n", ue_mf.rnti, ue_mf.rnti)]
+    [!|debugprintf("[BTS Resource Depletion][ADD_TRANSIENT_UE] Transient UE counter of bs %d is %d\n", ue_mf.bs_id, tran_ue_cntr.value)]
+]
+
+rule[bts_depletion_add_first_transient_ue_5g:
+    [+s:ue_session^TRANSIENT]
+    [+ts_ev:ts_event]
+    [?|s.nas_state == 1]                                        `NAS registering state
+    [?|ts_ev.value - s.ts > 'BTS_DEPLETION_REG_INIT_TIME_THRESHOLD]
+    [-transient_ue_counter|bs_id == s.bs_id]
+    [-transient_ue|bs_id == s.bs_id, rnti == s.rnti]
+==>
+    [+transient_ue_counter|bs_id = s.bs_id, value = 1, ts = s.ts]
+    [+transient_ue|bs_id = s.bs_id, rnti = s.rnti, ts = s.ts]
+    [$|s:TRANSIENT]
+    [!|debugprintf("[BTS Resource Depletion][ADD_FIRST_TRANSIENT_UE_5G] Marking UE %d/%x as transient\n", s.rnti, s.rnti)]
+    [!|debugprintf("[BTS Resource Depletion][ADD_FIRST_TRANSIENT_UE_5G] Transient UE counter of bs %d is %d\n", s.bs_id, 1)]
+]
+
+
+rule[bts_depletion_add_transient_ue_5g:
+    [+s:ue_session^TRANSIENT]
+    [+ts_ev:ts_event]
+    [?|s.nas_state == 1]                                        `NAS registering state
+    [?|ts_ev.value - s.ts > 'BTS_DEPLETION_REG_INIT_TIME_THRESHOLD]
+    [+tran_ue_cntr:transient_ue_counter|bs_id == s.bs_id]
+    [-transient_ue|bs_id == s.bs_id, rnti == s.rnti]
+==>
+    [/tran_ue_cntr|value += 1, ts = s.ts]
+    [+transient_ue|bs_id = s.bs_id, rnti = s.rnti, ts = s.ts]
+    [$|s:TRANSIENT]
+    [!|debugprintf("[BTS Resource Depletion][ADD_TRANSIENT_UE_5G] Marking UE %d/%x as transient\n", s.rnti, s.rnti)]
+    [!|debugprintf("[BTS Resource Depletion][ADD_TRANSIENT_UE_5G] Transient UE counter of bs %d is %d\n", s.bs_id, tran_ue_cntr.value)]
+]
+
+
+rule[bts_depletion_release_transient_ue:
+    [+tran_ue:transient_ue]
+    [+tran_ue_cntr:transient_ue_counter|bs_id == tran_ue.bs_id]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - tran_ue.ts) > 'BTS_DEPLETION_RELEASE_TIME_THRESHOLD]
+==>
+    [/tran_ue_cntr|value -= 1]
+    [-|tran_ue]
+    [!|debugprintf("[BTS Resource Depletion][RELEASE_TRANSIENT_UE] Removing transient UE %d/%x\n", tran_ue.rnti, tran_ue.rnti)]
+]
+
+rule[bts_depletion_generate_event:
+    [+tran_ue_cntr: transient_ue_counter^BTS_RESOURCE_DEPLETION]
+    [?|tran_ue_cntr.value > 'BTS_DEPLETION_UE_THRESHOLD]
+==>
+    [$|tran_ue_cntr: BTS_RESOURCE_DEPLETION]
+    [+event|id = 'event_id_cntr,
+	        name = "BTS Resource Depletion",
+            ts = tran_ue_cntr.ts,
+            bs_id = tran_ue_cntr.bs_id,
+            ue = 0
+    ]
+    [!|'event_id_cntr += 1 ]
+    [!|debugprintf("[BTS Resource Depletion][GENERATE_EVENT] Event detected for bs %d\n", tran_ue_cntr.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "BTS Resource Depletion", tran_ue_cntr.bs_id, tran_ue_cntr.ts, tran_ue_cntr.value)]
+]
+
+rule[bts_depletion_release_event:
+    [+e:event]
+    [+ts_ev:ts_event]
+    [?|strcmp(e.name, "BTS Resource Depletion") == 0]
+    [?|(ts_ev.value - e.ts) > 'BTS_DEPLETION_EVENT_EXPIRE_TIME]
+    [+tran_ue_cntr:transient_ue_counter|bs_id == e.bs_id]
+==>
+    [!|debugprintf("[BTS Resource Depletion][RELEASE_EVENT] Removing event for bs %d\n", e.bs_id)]
+    [-|e]
+    [^|tran_ue_cntr:BTS_RESOURCE_DEPLETION]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` Blind DoS attack (RRC_Connection_Request) rule set
+```````````````````````````````````````````````````````````````````````
+rule[blind_dos_detect:
+    [+ue_mf:ue_mobiflow]
+    [+ue1:ue_session]
+    [+ue2:ue_session^BLIND_DOS]
+    [?|ue2.bs_id == ue1.bs_id && ue2.rnti != ue1.rnti]
+    [?|ue1.rrc_state > 1 && ue2.rrc_state > 1]
+    [?|ue2.ts > ue1.ts]
+    [?|strcmp(ue2.tmsi, "0") != 0]
+    [?|strcmp(ue2.tmsi, ue1.tmsi) == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Blind DoS",
+            ts = ue2.ts,
+            bs_id = ue2.bs_id,
+            ue = ue2.rnti
+    ]
+    [!|'event_id_cntr += 1]
+    [$|ue2:BLIND_DOS]
+    [!|debugprintf("[Blind DoS][GENERATE_EVENT] Event detected for bs %d\n", ue2.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Blind DoS", ue2.bs_id, ue2.ts, ue2.rnti)]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` IMSI exposure detection rule set
+```````````````````````````````````````````````````````````````````````
+rule[imsi_extractor_detection:
+    [+ue_mf:ue_mobiflow^IMSI_EXPOSURE]
+    [?|strcmp(ue_mf.msg, "IDENTITY_RESPONSE") == 0]
+    [?|ue_mf.sec_state == 0 || ue_mf.cipher_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "IMSI Exposure",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:IMSI_EXPOSURE]
+    [!|debugprintf("[IMSI Exposure][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+]
+
+
+```````````````````````````````````````````````````````````````````````
+`` Null cipher detection rule set
+```````````````````````````````````````````````````````````````````````
+rule[null_cipher_detection_1:
+    [+ue_mf:ue_mobiflow^NULL_CIPHER]
+    [?|strcmp(ue_mf.msg, "SecurityModeComplete") == 0]
+    [?|ue_mf.sec_state == 1]
+    [?|ue_mf.cipher_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Null Cipher",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NULL_CIPHER]
+    [!|debugprintf("[Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    `[!|eventprintfjson('event_id_cntr, "Null Cipher", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+rule[null_cipher_detection_2:
+    [+ue_mf:ue_mobiflow^NULL_CIPHER]
+    [?|strcmp(ue_mf.msg, "SecurityModeFailure") == 0]
+    [?|ue_mf.sec_state == 0]
+    [?|ue_mf.cipher_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Null Cipher",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NULL_CIPHER]
+    [!|debugprintf("[Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    `[!|eventprintfjson('event_id_cntr, "Null Cipher", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+
+```````````````````````````````````````````````````````````````````````
+`` Null integrity detection rule set
+```````````````````````````````````````````````````````````````````````
+rule[null_integrity_detection_1:
+    [+ue_mf:ue_mobiflow^NULL_INTEGRITY]
+    [?|strcmp(ue_mf.msg, "SecurityModeComplete") == 0]
+    [?|ue_mf.sec_state == 1]
+    [?|ue_mf.integrity_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Null Integrity",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NULL_INTEGRITY]
+    [!|debugprintf("[Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    `[!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+rule[null_integrity_detection_2:
+    [+ue_mf:ue_mobiflow^NULL_INTEGRITY]
+    [?|strcmp(ue_mf.msg, "SecurityModeFailure") == 0]
+    [?|ue_mf.sec_state == 0]
+    [?|ue_mf.integrity_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Null Integrity",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NULL_INTEGRITY]
+    [!|debugprintf("[Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    `[!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` Overshadowing: Uplink IMSI extractor
+```````````````````````````````````````````````````````````````````````
+`` TMSI record management
+ptype[tmsi_record
+      bs_id:    int,
+      tmsi:     string,
+      ts:       double
+]
+
+rule[add_tmsi_record:
+    [+ue_mf:ue_mobiflow^TMSI_RECORD]
+    [?|strcmp(ue_mf.msg, "ATTACH_COMPLETE") == 0] `` add TMSI only when the NAS session is established
+    [?|strcmp(ue_mf.tmsi, "0") != 0]
+    [-tmsi_record|bs_id == ue_mf.bs_id && strcmp(ue_mf.tmsi, tmsi) == 0]
+==>
+    [!|debugprintf("[ADD_TMSI_RECORD] TMSI %s added at BS %d\n", ue_mf.tmsi, ue_mf.bs_id)]
+    [$|ue_mf:TMSI_RECORD]
+    [+tmsi_record|bs_id = ue_mf.bs_id,
+                  tmsi  = ue_mf.tmsi,
+                  ts    = ue_mf.timestamp
+    ]
+]
+
+rule[release_tmsi_record:
+    [+tmsi_rec:tmsi_record]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - tmsi_rec.ts) > 'TMSI_EXPIRE_TIME]
+==>
+    [-|tmsi_rec]
+]
+
+
+rule[uplink_imsi_extractor:
+    [+m2:ue_msg^UPLINK_IMSI_EXTRACTOR]
+    [+session:ue_session|id == m2.ue_session_id]  `` there exists a live UE session
+    [?|strcmp(m2.msg, "IDENTITY_REQUEST") == 0]
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]
+    [?|strcmp(m1.msg, "ATTACH_REQUEST") == 0] ` the previous message is attach request
+    [-tmsi_record|bs_id == session.bs_id && strcmp(tmsi, session.tmsi) == 0] `` check if the UE TMSI is unknown to network
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Uplink IMSI Extractor",
+            ts = m2.ts,
+            bs_id = session.bs_id,
+            ue = session.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|m2:UPLINK_IMSI_EXTRACTOR]
+    [!|debugprintf("[Uplink IMSI Extractor][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Uplink IMSI Extractor", session.bs_id, m2.ts, session.rnti)]
+]
+
+rule[uplink_imsi_extractor_5g:
+    [+m2:ue_msg^UPLINK_IMSI_EXTRACTOR]
+    [+session:ue_session|id == m2.ue_session_id]  `` there exists a live UE session
+    [?|strcmp(m2.msg, "Identityrequest") == 0]
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]
+    [?|strcmp(m1.msg, "Registrationrequest") == 0] ` the previous message is registration request
+    [-tmsi_record|bs_id == session.bs_id && strcmp(tmsi, session.tmsi) == 0] `` check if the UE TMSI is unknown to network
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Uplink IMSI Extractor",
+            ts = m2.ts,
+            bs_id = session.bs_id,
+            ue = session.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|m2:UPLINK_IMSI_EXTRACTOR]
+    [!|debugprintf("[Uplink IMSI Extractor 5G][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Uplink IMSI Extractor", session.bs_id, m2.ts, session.rnti)]
+]
+
+
+```````````````````````````````````````````````````````````````````````
+`` Overshadowing: Downlink IMSI extractor: checking unsolicited control messages
+```````````````````````````````````````````````````````````````````````
+rule[downlink_imsi_extractor:
+    [+m2:ue_msg^DOWNLINK_IMSI_EXTRACTOR]
+    [+session:ue_session|id == m2.ue_session_id]  `` there exists a live UE session
+    [?|strcmp(m2.msg, "IDENTITY_RESPONSE") == 0]
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]
+    [?|strcmp(m1.msg, "IDENTITY_REQUEST") != 0] ` the previous message is not identity_request
+==>
+    [+event|id = 'event_id_cntr,
+        name = "Downlink IMSI Extractor",
+        ts = m2.ts,
+        bs_id = session.bs_id,
+        ue = session.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|m2:DOWNLINK_IMSI_EXTRACTOR]
+    [!|debugprintf("[Downlink IMSI Extractor][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Downlink IMSI Extractor", session.bs_id, m2.ts, session.rnti)]
+]
+
+rule[downlink_imsi_extractor_5g:
+    [+m2:ue_msg^DOWNLINK_IMSI_EXTRACTOR]
+    [+session:ue_session|id == m2.ue_session_id]  `` there exists a live UE session
+    [?|strcmp(m2.msg, "Identityresponse") == 0]
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]
+    [?|strcmp(m1.msg, "Identityrequest") != 0] ` the previous message is not identity_request
+==>
+    [+event|id = 'event_id_cntr,
+        name = "Downlink IMSI Extractor",
+        ts = m2.ts,
+        bs_id = session.bs_id,
+        ue = session.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|m2:DOWNLINK_IMSI_EXTRACTOR]
+    [!|debugprintf("[Downlink IMSI Extractor 5G][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Downlink IMSI Extractor", session.bs_id, m2.ts, session.rnti)]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` Overshadowing: Uplink DoS
+```````````````````````````````````````````````````````````````````````
+rule[uplink_dos_service_request:
+    [+ue_mf:ue_mobiflow^UPLINK_DOS_SERVICE_REQUEST]
+    [?|strcmp(ue_mf.msg, "SERVICE_REJECT") == 0]
+    [?|ue_mf.emm_cause == 9]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Uplink DoS Service Request",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:UPLINK_DOS_SERVICE_REQUEST]
+    [!|debugprintf("[Uplink DoS Service Request][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Uplink DoS Service Request", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+
+rule[uplink_dos_attach_request:
+    [+ue_mf:ue_mobiflow^UPLINK_DOS_ATTACH_REQUEST]
+    [?|strcmp(ue_mf.msg, "ATTACH_REJECT") == 0]
+    [?|ue_mf.emm_cause == 9]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Uplink DoS Attach Request",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:UPLINK_DOS_ATTACH_REQUEST]
+    [!|debugprintf("[Uplink DoS Attach Request][GENERATE_EVENT] Event detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Uplink DoS Attach Request", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+``` New rules of variants
+
+```````````````````````````````````````````````````````````````````````
+`` Downlink Overshadowing (Variants): checking unsolicited control messages
+```````````````````````````````````````````````````````````````````````
+ptype[unsolicited_msg_event
+      bs_id:    int,
+      ue_rnti:  int,
+      msg:      string,
+      resp:     string,
+      ts:       double
+]
+
+rule[remove_unsolicited_msg_event:
+    [+unsol_msg_ev:unsolicited_msg_event]
+    [+ts_ev:ts_event]
+    [?|(ts_ev.value - unsol_msg_ev.ts) > 'UNSOLICITED_MSG_EVENT_EXPIRE_TIME]
+==>
+    `[!|debugprintf("Remove unsolicited msg event for UE %d msg %s\n", unsol_msg_ev.rnti, unsol_msg_ev.msg)]
+    [-|unsol_msg_ev]
+]
+
+rule[unsolicited_auth_request_response:
+    [+m2:ue_msg^UNSOLICITED_AUTH_REQUEST_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "AUTHENTICATION_REQUEST") == 0]                           `` m1 is auth_request
+    [?|strcmp(m2.msg, "AUTHENTICATION_RESPONSE") != 0 && strcmp(m2.msg, "AUTHENTICATION_FAILURE") != 0] `` m2 is neither auth_response or auth_failure
+==>
+    [$|m2:UNSOLICITED_AUTH_REQUEST_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of AUTH_REQUEST][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[unsolicited_auth_request_response_5g:
+    [+m2:ue_msg^UNSOLICITED_AUTH_REQUEST_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "Authenticationrequest") == 0]                            `` m1 is auth_request
+    [?|strcmp(m2.msg, "Authenticationresponse") != 0 && strcmp(m2.msg, "Authenticationfailure") != 0] `` m2 is neither auth_response or auth_failure
+==>
+    [$|m2:UNSOLICITED_AUTH_REQUEST_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of AUTH_REQUEST][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[unsolicited_sec_mode_cmd_response:
+    [+m2:ue_msg^UNSOLICITED_SEC_MODE_CMD_NAS_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "SECURITY_MODE_COMMAND") == 0]                            `` m1 is sec_mode_cmd
+    [?|strcmp(m2.msg, "SECURITY_MODE_COMPLETE") != 0 && strcmp(m2.msg, "SECURITY_MODE_REJECT") != 0 && strcmp(m2.msg, "ULInformationTransfer") != 0] `` m2 is neither sec_mode_complete nor sec_mode_reject nor ulInfoTransfer (encrypted)
+==>
+    [$|m2:UNSOLICITED_SEC_MODE_CMD_NAS_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of SEC_MODE_CMD (NAS)][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[unsolicited_sec_mode_cmd_response_5g:
+    [+m2:ue_msg^UNSOLICITED_SEC_MODE_CMD_NAS_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "Securitymodecommand") == 0]                            `` m1 is sec_mode_cmd
+    [?|strcmp(m2.msg, "Securitymodecomplete") != 0 && strcmp(m2.msg, "Securitymodereject") != 0 && strcmp(m2.msg, "ULInformationTransfer") != 0] `` m2 is neither sec_mode_complete nor sec_mode_reject nor ulInfoTransfer (encrypted)
+==>
+    [$|m2:UNSOLICITED_SEC_MODE_CMD_NAS_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of SEC_MODE_CMD (NAS)][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[unsolicited_attach_accept_response:
+    [+m2:ue_msg^UNSOLICITED_ATTACH_ACCEPT_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 2]   `` m2 is the next two message of m1
+    [?|strcmp(m1.msg, "ATTACH_ACCEPT") == 0]                                    `` m1 is attach_accept
+    [?|strcmp(m2.msg, "ATTACH_COMPLETE") != 0]                                  `` m2 is not attach_complete
+==>
+    [$|m2:UNSOLICITED_ATTACH_ACCEPT_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of ATTACH_ACCEPT][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[unsolicited_registration_accept_response_5g:
+    [+m2:ue_msg^UNSOLICITED_ATTACH_ACCEPT_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 2]   `` m2 is the next two message of m1
+    [?|strcmp(m1.msg, "Registrationaccept") == 0]                               `` m1 is attach_accept
+    [?|strcmp(m2.msg, "Registrationcomplete") != 0]                             `` m2 is not attach_complete
+==>
+    [$|m2:UNSOLICITED_ATTACH_ACCEPT_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of REGISTRATION_ACCEPT_5G][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[unsolicited_sec_mode_cmd_rrc_response:
+    [+m2:ue_msg^UNSOLICITED_SEC_MODE_CMD_RRC_RESPONSE]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "SecurityModeCommand") == 0]                              `` m1 is sec_mode_cmd
+    [?|strcmp(m2.msg, "SecurityModeComplete") != 0 && strcmp(m2.msg, "SecurityModeFailure") != 0] `` m2 is neither sec_mode_complete nor sec_mode_failure
+==>
+    [$|m2:UNSOLICITED_SEC_MODE_CMD_RRC_RESPONSE]
+    [!|debugprintf("[Unsolicited Response of SEC_MODE_CMD (RRC)][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [+unsolicited_msg_event|bs_id   = session.bs_id,
+                            ue_rnti = session.rnti,
+                            msg     = m1.msg,
+                            resp    = m2.msg,
+                            ts      = m2.ts
+    ]
+]
+
+rule[downlink_unsolicited_event:
+    [+ue_mf:ue_mobiflow^DOWNLINK_UNSOLICITED_EVENT]
+    `[?|ue_mf.nas_state == 0]
+    [+unsol_msg_ev:unsolicited_msg_event|bs_id == ue_mf.bs_id, ue_rnti == ue_mf.rnti]
+==>
+    [$|ue_mf:DOWNLINK_UNSOLICITED_EVENT]
+    [+event|id = 'event_id_cntr,
+            name = "Downlink Overshadowing",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.bs_id,
+            ue = ue_mf.rnti
+    ]
+    `[!|debugprintf("Downlink Overshadowing detected for UE %d at BS %d\n", ue_mf.rnti, ue_mf.bs_id)]
+    [!|debugprintf("Unsolicited response detected for %s: %s\n", unsol_msg_ev.msg, unsol_msg_ev.resp)]
+    [!|eventprintfjson('event_id_cntr, "Downlink Overshadowing", ue_mf.bs_id, ue_mf.timestamp, ue_mf.rnti)]
+    [-|unsol_msg_ev]
+]
+
+
+```````````````````````````````````````````````````````````````````````
+`` Null Cipher & Integrity on RRC
+```````````````````````````````````````````````````````````````````````
+rule[null_cipher_integrity_rrc:
+    [+m2:ue_msg^NULL_CIPHER_INTEGRITY_RRC]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "SecurityModeCommand") == 0]                              `` m1 is sec_mode_cmd
+    [?|strcmp(m2.msg, "SecurityModeFailure") == 0]                              `` m2 is is sec_mode_failure
+==>
+    [$|m2:NULL_CIPHER_INTEGRITY_RRC]
+    [!|debugprintf("[Null Cipher & Integrity (RRC)][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Null Cipher & Integrity (RRC)", session.bs_id, session.ts, session.rnti)]
+]
+
+
+```````````````````````````````````````````````````````````````````````
+`` Null Cipher & Integrity on NAS
+```````````````````````````````````````````````````````````````````````
+rule[null_cipher_integrity_nas:
+    [+m2:ue_msg^NULL_CIPHER_INTEGRITY_NAS]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "SECURITY_MODE_COMMAND") == 0]                            `` m1 is sec_mode_cmd
+    [?|strcmp(m2.msg, "SECURITY_MODE_REJECT") == 0]                             `` m2 is is sec_mode_failure
+==>
+    [$|m2:NULL_CIPHER_INTEGRITY_NAS]
+    [!|debugprintf("[Null Cipher & Integrity (NAS)][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Null Cipher & Integrity (NAS)", session.bs_id, session.ts, session.rnti)]
+]
+
+
+rule[null_cipher_integrity_nas_5g:
+    [+m2:ue_msg^NULL_CIPHER_INTEGRITY_NAS]
+    [+session:ue_session|id == m2.ue_session_id]                                `` there exists a live UE session
+    [+m1:ue_msg | ue_session_id == session.id, msg_index == m2.msg_index - 1]   `` m2 is the next message of m1
+    [?|strcmp(m1.msg, "Securitymodecommand") == 0]                              `` m1 is sec_mode_cmd
+    [?|strcmp(m2.msg, "Securitymodereject") == 0]                               `` m2 is is sec_mode_failure
+==>
+    [$|m2:NULL_CIPHER_INTEGRITY_NAS]
+    [!|debugprintf("[Null Cipher & Integrity (NAS) 5G][GENERATE_EVENT] Event detected for UE %d at BS %d\n", session.rnti, session.bs_id)]
+    [!|eventprintfjson('event_id_cntr, "Null Cipher & Integrity (NAS)", session.bs_id, session.ts, session.rnti)]
+]
