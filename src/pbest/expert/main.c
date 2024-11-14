@@ -80,6 +80,9 @@ void Engine_UE_MobiFlow_Event(char *token) {
                 ue.rnti = atoi(token);
                 break;
             case 9:
+                ue.s_tmsi = strtod(token, NULL);
+                break;
+            case 10:
                 ue.rrc_cipher_alg = atoi(token);
                 break;
             case 11:
@@ -122,7 +125,7 @@ void Engine_UE_MobiFlow_Event(char *token) {
     }
     if (ue.rnti != 0 && index == totalFeature) {
         assert_ue_mobiflow(pb_rules, &pb_tsnum, ue.msg_type, ue.msg_id, ue.mobiflow_ver, ue.generator_name, ue.timestamp,
-                           ue.nr_cell_id, ue.gnb_cu_ue_f1ap_id, ue.gnb_du_ue_f1ap_id, ue.rnti, 
+                           ue.nr_cell_id, ue.gnb_cu_ue_f1ap_id, ue.gnb_du_ue_f1ap_id, ue.rnti, ue.s_tmsi,
                            ue.rrc_cipher_alg, ue.rrc_integrity_alg, ue.nas_cipher_alg, ue.nas_integrity_alg,
                            ue.rrc_msg, ue.nas_msg, ue.rrc_state, ue.nas_state, ue.rrc_sec_state,
                            ue.reserved_field_1, ue.reserved_field_2, ue.reserved_field_3, 1.0, "");

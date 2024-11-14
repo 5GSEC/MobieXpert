@@ -143,6 +143,7 @@ ptype[ue_mobiflow
      gnb_cu_ue_f1ap_id:int,            `| UE meta  - UE id identified by gNB CU F1AP
      gnb_du_ue_f1ap_id:int,            `| UE meta  - UE id identified by gNB DU F1AP
      rnti:int,                         `| UE meta  - UE RNTI
+     s_tmsi:double,                    `| UE meta  - UE s-tmsi
      rrc_cipher_alg:int,               `| UE packet telemetry  - rrc cipher algorithm
      rrc_integrity_alg:int,            `| UE packet telemetry  - rrc integrity algorithm
      nas_cipher_alg:int,               `| UE packet telemetry  - nas cipher algorithm
@@ -407,7 +408,7 @@ rule[remove_ue_session:
     [?|session.rrc_state < 2 && session.nas_state == 0]
     [?|(ts_ev.value - session.ts) > 'UE_SESSION_EXPIRE_TIME]
 ==>
-    [!|debugprintf("Remove UE session: %d at BS %d\n", session.rnti, session.nr_cell_id)]
+    [!|debugprintf("Remove UE session: %d at BS %f\n", session.rnti, session.nr_cell_id)]
     [-|session]
 ]
 
@@ -427,4 +428,25 @@ rule[remove_ue_msg_2:
 ==>
     [!|verboseprintf("Remove UE msg for expired msg counter\n")]
     [-|m]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` Null cipher detection rule set
+```````````````````````````````````````````````````````````````````````
+rule[null_cipher_detection_1:
+    [+ue_mf:ue_mobiflow^NULL_CIPHER]
+    [?|strcmp(ue_mf.rrc_msg, "SecurityModeComplete") == 0]
+    [?|ue_mf.rrc_sec_state < 2]
+    [?|ue_mf.rrc_cipher_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Null Cipher",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.nr_cell_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NULL_CIPHER]
+    [!|debugprintf("[Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
+    [!|eventprintfjson('event_id_cntr, "Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
 ]
