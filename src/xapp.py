@@ -29,7 +29,7 @@ class MobieXpertXapp:
 
     __XAPP_CONFIG_PATH = "/tmp/init/config-file.json"
     __XAPP_NAME = "mobiexpert-xapp"
-    __XAPP_VERSION = "0.0.1"
+    __XAPP_VERSION = "0.0.2"
     __XAPP_NAME_SPACE = "ricxapp"
     __PLT_NAME_SPACE = "ricplt"
     __HTTP_PORT = 8080

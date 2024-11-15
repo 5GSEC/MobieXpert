@@ -25,7 +25,7 @@ def read(fname):
 
 setup(
     name='mobiexpert-xapp',
-    version='0.0.1',
+    version='0.0.2',
     packages=find_packages(),
     url='https://5gsec.com',
     license='Apache 2.0',

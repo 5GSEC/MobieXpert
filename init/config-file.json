@@ -1,13 +1,13 @@
 {
     "name": "mobiexpert-xapp",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "containers": [
         {
             "name": "mobiexpert-xapp",
             "image": {
                 "registry": "127.0.0.1:5000",
                 "name": "mobiexpert-xapp",
-                "tag": "0.0.1"
+                "tag": "0.0.2"
             }
         }
     ],

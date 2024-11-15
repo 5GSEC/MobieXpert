@@ -47,10 +47,10 @@ class PBest:
         while True:
             output = f.readline()
             if output:
-                self.pbest_print_log(output)
+                self.process_output(output)
         f.close()
 
-    def pbest_print_log(self, output: str):
+    def process_output(self, output: str):
         if output is None:
             return
         output = output.strip() # remove unnecessary \n
