@@ -64,11 +64,11 @@ class MobieXpertXapp:
         self._register(rmr_xapp)
 
         # obtain nodeb list for subscription
-        gnb_list = sdl_mgr.get_gnb_list()
-        for gnb_nb_identity in gnb_list:
-            inventory_name = gnb_nb_identity.inventory_name
-            connection_status = gnb_nb_identity.connection_status
-            nodeb_info_json = sdl_mgr.get_nodeb_info_by_inventory_name(inventory_name)
+        # gnb_list = sdl_mgr.get_gnb_list()
+        # for gnb_nb_identity in gnb_list:
+        #     inventory_name = gnb_nb_identity.inventory_name
+        #     connection_status = gnb_nb_identity.connection_status
+        #     nodeb_info_json = sdl_mgr.get_nodeb_info_by_inventory_name(inventory_name)
 
         # load xApp config
         with open(self.__XAPP_CONFIG_PATH, 'r') as config_file:
@@ -84,7 +84,7 @@ class MobieXpertXapp:
         mf_loader.run()
 
         # init PBest instance
-        pb = PBest(pb_exec_path, pb_log_file, csv_file)
+        pb = PBest(pb_exec_path, pb_log_file, csv_file, sdl_mgr)
         pb.run()
 
     def _register(self, rmr_xapp):

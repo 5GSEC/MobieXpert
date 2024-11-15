@@ -4,9 +4,10 @@ import logging
 import json
 import datetime
 from .log_formatter import LogFormatter
+from ..manager import SdlManager
 
 class PBest:
-    def __init__(self, exec_path, log_path, csv_file):
+    def __init__(self, exec_path, log_path, csv_file, sdl_mgr: SdlManager):
         # paths and parameters
         self.process_name = exec_path
         self.log_file_name = log_path
@@ -16,6 +17,9 @@ class PBest:
         self.event_header = "[EVENT]"
         self.print_debug = True
         self.csv_file = csv_file
+        self.sdl_mgr = sdl_mgr
+        self.SDL_EVENT_NS = "mobiexpert-event"
+        self.event_counter = 0
         # output logger
         self.logger = logging.getLogger("PBest")
         self.logger.setLevel(logging.DEBUG)
@@ -61,14 +65,20 @@ class PBest:
             event_dict = json.loads(output)
             if "Time" in event_dict.keys():
                 event_dict["Time"] = self.timestamp2str(event_dict["Time"])
-            formatted_str = json.dumps(event_dict, indent=2)
+            self.event_counter = self.event_counter + 1
 
             if event_dict["Event Name"] in self.warning_event_list:
+                event_dict["Level"] = "Warning"
+                formatted_str = json.dumps(event_dict, indent=2)
                 self.logger.warning("[PBest] Warning event detected")
                 self.logger.warning(formatted_str)
+                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), formatted_str)
             else:
+                event_dict["Level"] = "Critical"
+                formatted_str = json.dumps(event_dict, indent=2)
                 self.logger.critical("[PBest] Attack event detected")
                 self.logger.critical(formatted_str)
+                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), formatted_str)
         else:
             if self.print_debug is True:
                 # print it as a log entry
@@ -76,7 +86,7 @@ class PBest:
 
     @staticmethod
     def timestamp2str(ts):
-        return datetime.datetime.fromtimestamp(ts/1000).__str__() # convert ms into s
+        return datetime.datetime.fromtimestamp(ts).__str__()
 
     def exit(self):
         if self.process is not None:

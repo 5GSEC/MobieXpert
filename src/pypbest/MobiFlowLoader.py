@@ -85,7 +85,7 @@ class MobiFlowLoader():
                     # compare timestamp
                     umf = str(ue_results[u_idx])
                     bmf = str(bs_results[b_idx])
-                    umf_ts = float(umf.split(self.MOBIFLOW_DELIMITER)[2])
+                    umf_ts = float(umf.split(self.MOBIFLOW_DELIMITER)[4])
                     bmf_ts = float(bmf.split(self.MOBIFLOW_DELIMITER)[2])
                     if umf_ts < bmf_ts:
                         write_decision = "UE"
