@@ -70,11 +70,11 @@ int eventprintf(const char *fmt, ...) {
     return 0;
 }
 
-int eventprintfjson(int id, const char *name, int bs, double ts, int ue) {
+int eventprintfjson(int id, const char *name, int bs, double ts, int ue, const char *description) {
     if (strcmp(name, "BTS Resource Depletion") == 0)
-      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %f, \"Number of DoS UE\": %d}\n", id, name, bs, ts, ue);
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Number of DoS UE\": %d, \"Description\": %s}\n", id, name, bs, ts, ue, description);
     else
-      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %f, \"Affected UE ID\": %d}\n", id, name, bs, ts, ue);
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Affected UE ID\": %d, \"Description\": %s}\n", id, name, bs, ts, ue, description);
 }
 
 }
@@ -448,7 +448,7 @@ rule[rrc_null_cipher_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:RRC_NULL_CIPHER]
     [!|debugprintf("[RRC Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "RRC Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+    [!|eventprintfjson('event_id_cntr, "RRC Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.")]
 ]
 
 rule[rrc_null_integrity_detection_1:
@@ -466,7 +466,7 @@ rule[rrc_null_integrity_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:RRC_NULL_INTEGRITY]
     [!|debugprintf("[RRC Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+    [!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null integrity mode in its RRC session, its RRC traffic data is subject to Man-in-the-Middle attack.")]
 ]
 
 rule[nas_null_cipher_detection_1:
@@ -483,7 +483,7 @@ rule[nas_null_cipher_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:NAS_NULL_CIPHER]
     [!|debugprintf("[NAS Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "NAS Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+    [!|eventprintfjson('event_id_cntr, "NAS Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti,  "The UE uses null cipher mode in its NAS session, its NAS traffic data is subject to sniffing attack.")]
 ]
 
 rule[nas_null_integrity_detection_1:
@@ -500,5 +500,25 @@ rule[nas_null_integrity_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:NAS_NULL_INTEGRITY]
     [!|debugprintf("[NAS Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "NAS Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+    [!|eventprintfjson('event_id_cntr, "NAS Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null integrity mode in its NAS session, its NAS traffic data is subject to Man-in-the-Middle attack.")]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` Identity exposure detection rule set
+```````````````````````````````````````````````````````````````````````
+rule[imsi_extractor_detection:
+    [+ue_mf:ue_mobiflow^ID_EXPOSURE]
+    [?|strcmp(ue_mf.nas_msg, "Identityresponse") == 0]
+    [?|ue_mf.nas_state < 2 || ue_mf.nas_cipher_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Identity Exposure",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.nr_cell_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:ID_EXPOSURE]
+    [!|debugprintf("[Identity Exposure][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
+    [!|eventprintfjson('event_id_cntr, "Identity Exposure", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE transmitted its unique identifier over plain-text NAS traffic. Its identity could have been leaked to attackers listening to the channel.")]
 ]
