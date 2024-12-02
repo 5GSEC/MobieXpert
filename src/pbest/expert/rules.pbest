@@ -72,9 +72,9 @@ int eventprintf(const char *fmt, ...) {
 
 int eventprintfjson(int id, const char *name, int bs, double ts, int ue, const char *description) {
     if (strcmp(name, "BTS Resource Depletion") == 0)
-      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Number of DoS UE\": %d, \"Description\": %s}\n", id, name, bs, ts, ue, description);
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Number of DoS UE\": %d, \"Description\": \"%s\"}\n", id, name, bs, ts, ue, description);
     else
-      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Affected UE ID\": %d, \"Description\": %s}\n", id, name, bs, ts, ue, description);
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Affected UE ID\": %d, \"Description\": \"%s\"}\n", id, name, bs, ts, ue, description);
 }
 
 }
