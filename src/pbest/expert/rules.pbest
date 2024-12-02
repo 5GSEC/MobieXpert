@@ -433,20 +433,72 @@ rule[remove_ue_msg_2:
 ```````````````````````````````````````````````````````````````````````
 `` Null cipher detection rule set
 ```````````````````````````````````````````````````````````````````````
-rule[null_cipher_detection_1:
-    [+ue_mf:ue_mobiflow^NULL_CIPHER]
+rule[rrc_null_cipher_detection_1:
+    [+ue_mf:ue_mobiflow^RRC_NULL_CIPHER]
     [?|strcmp(ue_mf.rrc_msg, "SecurityModeComplete") == 0]
-    [?|ue_mf.rrc_sec_state < 2]
+    [?|ue_mf.rrc_sec_state < 3]
     [?|ue_mf.rrc_cipher_alg == 0]
 ==>
     [+event|id = 'event_id_cntr,
-            name = "Null Cipher",
+            name = "RRC Null Cipher",
             ts = ue_mf.timestamp,
             bs_id = ue_mf.nr_cell_id,
             ue = ue_mf.rnti
     ]
     [!|'event_id_cntr += 1 ]
-    [$|ue_mf:NULL_CIPHER]
-    [!|debugprintf("[Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+    [$|ue_mf:RRC_NULL_CIPHER]
+    [!|debugprintf("[RRC Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
+    [!|eventprintfjson('event_id_cntr, "RRC Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+rule[rrc_null_integrity_detection_1:
+    [+ue_mf:ue_mobiflow^RRC_NULL_INTEGRITY]
+    [?|strcmp(ue_mf.rrc_msg, "SecurityModeComplete") == 0]
+    [?|ue_mf.rrc_sec_state < 3]
+    [?|ue_mf.rrc_integrity_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "RRC Null Integrity",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.nr_cell_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:RRC_NULL_INTEGRITY]
+    [!|debugprintf("[RRC Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
+    [!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+rule[nas_null_cipher_detection_1:
+    [+ue_mf:ue_mobiflow^NAS_NULL_CIPHER]
+    [?|strcmp(ue_mf.nas_msg, "Securitymodecomplete") == 0]
+    [?|ue_mf.nas_cipher_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "NAS Null Cipher",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.nr_cell_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NAS_NULL_CIPHER]
+    [!|debugprintf("[NAS Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
+    [!|eventprintfjson('event_id_cntr, "NAS Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
+]
+
+rule[nas_null_integrity_detection_1:
+    [+ue_mf:ue_mobiflow^NAS_NULL_INTEGRITY]
+    [?|strcmp(ue_mf.nas_msg, "Securitymodecomplete") == 0]
+    [?|ue_mf.nas_integrity_alg == 0]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "NAS Null Integrity",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.nr_cell_id,
+            ue = ue_mf.rnti
+    ]
+    [!|'event_id_cntr += 1 ]
+    [$|ue_mf:NAS_NULL_INTEGRITY]
+    [!|debugprintf("[NAS Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
+    [!|eventprintfjson('event_id_cntr, "NAS Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti)]
 ]

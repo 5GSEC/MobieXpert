@@ -89,7 +89,7 @@ void Engine_UE_MobiFlow_Event(char *token) {
                 ue.rrc_integrity_alg = atoi(token);
                 break;
             case 12:
-                ue.nas_integrity_alg = atoi(token);
+                ue.nas_cipher_alg = atoi(token);
                 break;
             case 13:
                 ue.nas_integrity_alg = atoi(token);
