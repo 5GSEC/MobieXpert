@@ -338,6 +338,7 @@ ptype[ue_session
       gnb_cu_ue_f1ap_id:    int,
       gnb_du_ue_f1ap_id:    int,
       rnti:                 int,
+      s_tmsi:               double,
       rrc_state:            int,
       nas_state:            int,
       rrc_sec_state:        int,
@@ -364,6 +365,7 @@ rule[add_ue_session(#97):
                  gnb_cu_ue_f1ap_id  = ue_mf.gnb_cu_ue_f1ap_id,
                  gnb_du_ue_f1ap_id  = ue_mf.gnb_du_ue_f1ap_id,
                  rnti               = ue_mf.rnti,
+                 s_tmsi             = ue_mf.s_tmsi,
                  rrc_state          = ue_mf.rrc_state,
                  nas_state          = ue_mf.nas_state,
                  rrc_sec_state      = ue_mf.rrc_sec_state,
@@ -392,6 +394,7 @@ rule[update_ue_session(#97):
              ts             = ue_mf.timestamp
     ]
     [/session|msg_count += 1,
+              s_tmsi        = ue_mf.s_tmsi,
               rrc_state     = ue_mf.rrc_state,
               nas_state     = ue_mf.nas_state,
               rrc_sec_state = ue_mf.rrc_sec_state,
@@ -521,4 +524,29 @@ rule[imsi_extractor_detection:
     [$|ue_mf:ID_EXPOSURE]
     [!|debugprintf("[Identity Exposure][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
     [!|eventprintfjson('event_id_cntr, "Identity Exposure", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE transmitted its unique identifier over plain-text NAS traffic. Its identity could have been leaked to attackers listening to the channel.")]
+]
+
+```````````````````````````````````````````````````````````````````````
+`` Blind DoS attack (RRC_Connection_Request) rule set
+```````````````````````````````````````````````````````````````````````
+rule[blind_dos_detect:
+    [+ue_mf:ue_mobiflow]
+    [+ue1:ue_session]
+    [+ue2:ue_session^BLIND_DOS]
+    [?|ue2.nr_cell_id == ue1.nr_cell_id && ue2.rnti != ue1.rnti]
+    [?|ue1.rrc_state > 1 && ue2.rrc_state > 1]
+    [?|ue2.ts > ue1.ts]
+    [?|ue2.s_tmsi != 0]
+    [?|ue2.s_tmsi == ue1.s_tmsi]
+==>
+    [+event|id = 'event_id_cntr,
+            name = "Blind DoS",
+            ts = ue2.ts,
+            bs_id = ue2.nr_cell_id,
+            ue = ue2.rnti
+    ]
+    [!|'event_id_cntr += 1]
+    [$|ue2:BLIND_DOS]
+    [!|debugprintf("[Blind DoS][GENERATE_EVENT] Event detected for bs %.0f UE1 %d UE2 %d with same TMSI %.0f\n", ue2.nr_cell_id, ue1.rnti, ue2.rnti, ue1.s_tmsi)]
+    [!|eventprintfjson('event_id_cntr, "Blind DoS", ue2.nr_cell_id, ue2.ts, ue2.rnti, "A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.")]
 ]
