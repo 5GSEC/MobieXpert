@@ -72,13 +72,15 @@ class PBest:
                 formatted_str = json.dumps(event_dict, indent=2)
                 self.logger.warning("[PBest] Warning event detected")
                 self.logger.warning(formatted_str)
-                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), formatted_str)
+                str_list = [str(v) for v in event_dict.values()]
+                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), ";".join(str_list))
             else:
                 event_dict["Level"] = "Critical"
                 formatted_str = json.dumps(event_dict, indent=2)
                 self.logger.critical("[PBest] Attack event detected")
                 self.logger.critical(formatted_str)
-                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), formatted_str)
+                str_list = [str(v) for v in event_dict.values()]
+                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), ";".join(str_list))
         else:
             if self.print_debug is True:
                 # print it as a log entry
