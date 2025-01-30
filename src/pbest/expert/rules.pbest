@@ -16,24 +16,26 @@ int DEBUG = 1;
 int VERBOSE = 0;
 int Report_ID_Tag = 1;
 
-int UE_EXPIRE_TIME = 600000;
-int BS_EXPIRE_TIME = 600000;
-int EVENT_EXPIRE_TIME = 600000;
-int UE_SESSION_EXPIRE_TIME = 600000;
-int TMSI_EXPIRE_TIME = 3600000;
+/***** Below time value is at second level ****/
+int UE_EXPIRE_TIME = 1800;
+int BS_EXPIRE_TIME = 3600;
+int EVENT_EXPIRE_TIME = 86400;
+int UE_SESSION_EXPIRE_TIME = 3600;
+int TMSI_EXPIRE_TIME = 3600;
 
 int BTS_DEPLETION_UE_THRESHOLD = 2;
-int BTS_DEPLETION_TRANSIENT_TIME_THRESHOLD = 7000;
-int BTS_DEPLETION_RELEASE_TIME_THRESHOLD = 10000;
-int BTS_DEPLETION_EVENT_EXPIRE_TIME = 30000;
-int BTS_DEPLETION_REG_INIT_TIME_THRESHOLD = 1000;
+int BTS_DEPLETION_TRANSIENT_TIME_THRESHOLD = 7;
+int BTS_DEPLETION_RELEASE_TIME_THRESHOLD = 10;
+int BTS_DEPLETION_EVENT_EXPIRE_TIME = 30;
+int BTS_DEPLETION_REG_INIT_TIME_THRESHOLD = 1;
+
+int UNSOLICITED_MSG_EVENT_EXPIRE_TIME = 10;
 
 int ptype_cntr = 0;
 int event_id_cntr = 0;
 int ue_session_id_cntr = 0;
 int UE_MSG_TRACK_COUNTER = 5;
 
-int UNSOLICITED_MSG_EVENT_EXPIRE_TIME = 10000;
 
 /******************* C Utility Functions *******************/
 int verboseprintf(const char *fmt, ...) {
@@ -530,7 +532,6 @@ rule[imsi_extractor_detection:
 `` Blind DoS attack (RRC_Connection_Request) rule set
 ```````````````````````````````````````````````````````````````````````
 rule[blind_dos_detect:
-    [+ue_mf:ue_mobiflow]
     [+ue1:ue_session]
     [+ue2:ue_session^BLIND_DOS]
     [?|ue2.nr_cell_id == ue1.nr_cell_id && ue2.rnti != ue1.rnti]

@@ -63,8 +63,8 @@ class PBest:
             # parse event
             output = output.replace(self.event_header, "").strip()
             event_dict = json.loads(output)
-            if "Time" in event_dict.keys():
-                event_dict["Time"] = self.timestamp2str(event_dict["Time"])
+            # if "Time" in event_dict.keys():
+                # event_dict["Time"] = self.timestamp2str(event_dict["Time"])
             self.event_counter = self.event_counter + 1
 
             if event_dict["Event Name"] in self.warning_event_list:

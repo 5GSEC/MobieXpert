@@ -97,7 +97,7 @@ class MobiFlowLoader():
                     acquire_lock(f)
                     umf = ue_results[u_idx]
                     self.rmr_xapp.logger.info("[MobiFlow] Writing UE MobiFlow: " + umf)
-                    self.last_write_time = self.get_time_ms()
+                    self.last_write_time = self.get_time_sec()
                     f.write(umf + "\n")
                     f.flush()
                     release_lock(f)
@@ -107,7 +107,7 @@ class MobiFlowLoader():
                     acquire_lock(f)
                     bmf = bs_results[b_idx]
                     self.rmr_xapp.logger.info("[MobiFlow] Writing BS MobiFlow: " + bmf)
-                    self.last_write_time = self.get_time_ms()
+                    self.last_write_time = self.get_time_sec()
                     f.write(bmf + "\n")
                     f.flush()
                     release_lock(f)
@@ -124,8 +124,8 @@ class MobiFlowLoader():
         """
         f = open(self.csv_file, "a")
         while True:
-            cur_time = self.get_time_ms()
-            if self.last_write_time != 0 and cur_time - self.last_write_time > self.maintenance_time_threshold:
+            cur_time = self.get_time_sec()
+            if self.last_write_time != 0 and cur_time - self.last_write_time > (self.maintenance_time_threshold / 1000):
                 # Assign lock
                 acquire_lock(f)
                 maintenance_event = self.MOBIFLOW_DELIMITER.join(["MAINTENANCE", str(cur_time)])
@@ -147,6 +147,10 @@ class MobiFlowLoader():
     @staticmethod
     def get_time_ms():
         return time.time() * 1000
+
+    @staticmethod
+    def get_time_sec():
+        return time.time()
 
     @staticmethod
     def timestamp2str(ts):
