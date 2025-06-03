@@ -475,6 +475,7 @@ rule[rrc_null_integrity_detection_1:
 ]
 
 rule[nas_null_cipher_detection_1:
+    [?|1 == 0] ` TODO: temporarily disable this rule
     [+ue_mf:ue_mobiflow^NAS_NULL_CIPHER]
     [?|strcmp(ue_mf.nas_msg, "Securitymodecomplete") == 0]
     [?|ue_mf.nas_cipher_alg == 0]
@@ -492,6 +493,7 @@ rule[nas_null_cipher_detection_1:
 ]
 
 rule[nas_null_integrity_detection_1:
+    [?|1 == 0] ` TODO: temporarily disable this rule
     [+ue_mf:ue_mobiflow^NAS_NULL_INTEGRITY]
     [?|strcmp(ue_mf.nas_msg, "Securitymodecomplete") == 0]
     [?|ue_mf.nas_integrity_alg == 0]
@@ -551,3 +553,4 @@ rule[blind_dos_detect:
     [!|debugprintf("[Blind DoS][GENERATE_EVENT] Event detected for bs %.0f UE1 %d UE2 %d with same TMSI %.0f\n", ue2.nr_cell_id, ue1.rnti, ue2.rnti, ue1.s_tmsi)]
     [!|eventprintfjson('event_id_cntr, "Blind DoS", ue2.nr_cell_id, ue2.ts, ue2.rnti, "A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.")]
 ]
+
