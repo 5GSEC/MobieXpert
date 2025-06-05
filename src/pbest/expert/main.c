@@ -48,7 +48,7 @@ void Engine_Maintenance_Event(char *token) {
 void Engine_UE_MobiFlow_Event(char *token) {
     struct ue_mobiflow ue;
     int index = 0;
-    int totalFeature = 22; // TODO change this index when updating MobiFlow
+    int totalFeature = 23; // TODO change this index when updating MobiFlow
     while(token != NULL)
     {
         switch (index) {
@@ -83,39 +83,42 @@ void Engine_UE_MobiFlow_Event(char *token) {
                 ue.s_tmsi = strtod(token, NULL);
                 break;
             case 10:
-                ue.rrc_cipher_alg = atoi(token);
+                ue.mobile_id = strtod(token, NULL);
                 break;
             case 11:
-                ue.rrc_integrity_alg = atoi(token);
+                ue.rrc_cipher_alg = atoi(token);
                 break;
             case 12:
-                ue.nas_cipher_alg = atoi(token);
+                ue.rrc_integrity_alg = atoi(token);
                 break;
             case 13:
-                ue.nas_integrity_alg = atoi(token);
+                ue.nas_cipher_alg = atoi(token);
                 break;
             case 14:
-                ue.rrc_msg = token;
+                ue.nas_integrity_alg = atoi(token);
                 break;
             case 15:
-                ue.nas_msg = token;
+                ue.rrc_msg = token;
                 break;
             case 16:
-                ue.rrc_state = atoi(token);
+                ue.nas_msg = token;
                 break;
             case 17:
-                ue.nas_state = atoi(token);
+                ue.rrc_state = atoi(token);
                 break;
             case 18:
-                ue.rrc_sec_state = atoi(token);
+                ue.nas_state = atoi(token);
                 break;
             case 19:
-                ue.reserved_field_1 = strtod(token, NULL);
+                ue.rrc_sec_state = atoi(token);
                 break;
             case 20:
-                ue.reserved_field_2 = strtod(token, NULL);
+                ue.reserved_field_1 = strtod(token, NULL);
                 break;
             case 21:
+                ue.reserved_field_2 = strtod(token, NULL);
+                break;
+            case 22:
                 ue.reserved_field_3 = strtod(token, NULL);
                 break;
            
@@ -125,7 +128,7 @@ void Engine_UE_MobiFlow_Event(char *token) {
     }
     if (ue.rnti != 0 && index == totalFeature) {
         assert_ue_mobiflow(pb_rules, &pb_tsnum, ue.msg_type, ue.msg_id, ue.mobiflow_ver, ue.generator_name, ue.timestamp,
-                           ue.nr_cell_id, ue.gnb_cu_ue_f1ap_id, ue.gnb_du_ue_f1ap_id, ue.rnti, ue.s_tmsi,
+                           ue.nr_cell_id, ue.gnb_cu_ue_f1ap_id, ue.gnb_du_ue_f1ap_id, ue.rnti, ue.s_tmsi, ue.mobile_id,
                            ue.rrc_cipher_alg, ue.rrc_integrity_alg, ue.nas_cipher_alg, ue.nas_integrity_alg,
                            ue.rrc_msg, ue.nas_msg, ue.rrc_state, ue.nas_state, ue.rrc_sec_state,
                            ue.reserved_field_1, ue.reserved_field_2, ue.reserved_field_3, 1.0, "");

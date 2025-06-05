@@ -146,6 +146,7 @@ ptype[ue_mobiflow
      gnb_du_ue_f1ap_id:int,            `| UE meta  - UE id identified by gNB DU F1AP
      rnti:int,                         `| UE meta  - UE RNTI
      s_tmsi:double,                    `| UE meta  - UE s-tmsi
+     mobile_id:double,                 `| UE meta  - UE mobile device id (e.g., SUPI, SUCI, IMEI)
      rrc_cipher_alg:int,               `| UE packet telemetry  - rrc cipher algorithm
      rrc_integrity_alg:int,            `| UE packet telemetry  - rrc integrity algorithm
      nas_cipher_alg:int,               `| UE packet telemetry  - nas cipher algorithm
@@ -554,3 +555,22 @@ rule[blind_dos_detect:
     [!|eventprintfjson('event_id_cntr, "Blind DoS", ue2.nr_cell_id, ue2.ts, ue2.rnti, "A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.")]
 ]
 
+```````````````````````````````````````````````````````````````````````
+`` IMSI Notification Rule set
+```````````````````````````````````````````````````````````````````````
+rule[ue_imsi_notification:
+    [?|1 == 0] ` TODO: temporarily disable this rule
+    [+ue_mf:ue_mobiflow^IMSI_NOTIFICATION]
+    [?|strcmp(ue_mf.nas_msg, "Registrationrequest") == 0]
+    [?|ue_mf.reserved_field_1 == 1] `The UE uses IMSI as identity type
+    [?|ue_mf.mobile_id == 2089900004788] `The UE's IMSI matches the number that triggers notification
+==>
+    [+event|id = 'event_id_cntr,
+            name = "UE IMSI Notification",
+            ts = ue_mf.timestamp,
+            bs_id = ue_mf.nr_cell_id,
+            ue = ue_mf.rnti
+    ]
+    [$|ue_mf:IMSI_NOTIFICATION]
+    [!|eventprintfjson('event_id_cntr, "UE IMSI Notification", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "A UE with IMSI 2089900004788 has just started registration to the network.")]
+]
