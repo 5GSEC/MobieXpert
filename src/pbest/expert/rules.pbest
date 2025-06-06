@@ -72,11 +72,11 @@ int eventprintf(const char *fmt, ...) {
     return 0;
 }
 
-int eventprintfjson(int id, const char *name, int bs, double ts, int ue, const char *description) {
+int eventprintfjson(int id, const char *name, int bs, double ts, int ue, const char *description, const char *level) {
     if (strcmp(name, "BTS Resource Depletion") == 0)
-      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Number of DoS UE\": %d, \"Description\": \"%s\"}\n", id, name, bs, ts, ue, description);
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Number of DoS UE\": %d, \"Description\": \"%s\", \"Level\": \"%s\"}\n", id, name, bs, ts, ue, description, level);
     else
-      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Affected UE ID\": %d, \"Description\": \"%s\"}\n", id, name, bs, ts, ue, description);
+      printf("[EVENT]{\"Event ID\": %d, \"Event Name\": \"%s\", \"Affected base station ID\": %d, \"Time\": %.0f, \"Affected UE ID\": %d, \"Description\": \"%s\", \"Level\": \"%s\"}\n", id, name, bs, ts, ue, description, level);
 }
 
 }
@@ -128,7 +128,7 @@ xtype[UNSOLICITED_MSG_EVENT_EXPIRE_TIME: int]
 xtype[debugprintf:	    intfunc]
 xtype[verboseprintf:        intfunc]
 xtype[eventprintf:	    intfunc]
-xtype[eventprintfjson:	    intfunc]
+xtype[eventprintfjson:	    intfunc] `Event level: Critical, Warning, Info
 
 ```````````````````````````````````````````````````````````````````
 ` PBEST Variable and Fact Declarations
@@ -454,7 +454,7 @@ rule[rrc_null_cipher_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:RRC_NULL_CIPHER]
     [!|debugprintf("[RRC Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "RRC Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.")]
+    [!|eventprintfjson('event_id_cntr, "RRC Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.", "Critical")]
 ]
 
 rule[rrc_null_integrity_detection_1:
@@ -472,7 +472,7 @@ rule[rrc_null_integrity_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:RRC_NULL_INTEGRITY]
     [!|debugprintf("[RRC Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null integrity mode in its RRC session, its RRC traffic data is subject to Man-in-the-Middle attack.")]
+    [!|eventprintfjson('event_id_cntr, "Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null integrity mode in its RRC session, its RRC traffic data is subject to Man-in-the-Middle attack.", "Critical")]
 ]
 
 rule[nas_null_cipher_detection_1:
@@ -490,7 +490,7 @@ rule[nas_null_cipher_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:NAS_NULL_CIPHER]
     [!|debugprintf("[NAS Null Cipher][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "NAS Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti,  "The UE uses null cipher mode in its NAS session, its NAS traffic data is subject to sniffing attack.")]
+    [!|eventprintfjson('event_id_cntr, "NAS Null Cipher", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti,  "The UE uses null cipher mode in its NAS session, its NAS traffic data is subject to sniffing attack.", "Critical")]
 ]
 
 rule[nas_null_integrity_detection_1:
@@ -508,7 +508,7 @@ rule[nas_null_integrity_detection_1:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:NAS_NULL_INTEGRITY]
     [!|debugprintf("[NAS Null Integrity][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "NAS Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null integrity mode in its NAS session, its NAS traffic data is subject to Man-in-the-Middle attack.")]
+    [!|eventprintfjson('event_id_cntr, "NAS Null Integrity", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE uses null integrity mode in its NAS session, its NAS traffic data is subject to Man-in-the-Middle attack.", "Critical")]
 ]
 
 ```````````````````````````````````````````````````````````````````````
@@ -528,7 +528,7 @@ rule[imsi_extractor_detection:
     [!|'event_id_cntr += 1 ]
     [$|ue_mf:ID_EXPOSURE]
     [!|debugprintf("[Identity Exposure][GENERATE_EVENT] Event detected for UE %d at BS %.0f\n", ue_mf.rnti, ue_mf.nr_cell_id)]
-    [!|eventprintfjson('event_id_cntr, "Identity Exposure", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE transmitted its unique identifier over plain-text NAS traffic. Its identity could have been leaked to attackers listening to the channel.")]
+    [!|eventprintfjson('event_id_cntr, "Identity Exposure", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "The UE transmitted its unique identifier over plain-text NAS traffic. Its identity could have been leaked to attackers listening to the channel.", "Warning")]
 ]
 
 ```````````````````````````````````````````````````````````````````````
@@ -552,7 +552,7 @@ rule[blind_dos_detect:
     [!|'event_id_cntr += 1]
     [$|ue2:BLIND_DOS]
     [!|debugprintf("[Blind DoS][GENERATE_EVENT] Event detected for bs %.0f UE1 %d UE2 %d with same TMSI %.0f\n", ue2.nr_cell_id, ue1.rnti, ue2.rnti, ue1.s_tmsi)]
-    [!|eventprintfjson('event_id_cntr, "Blind DoS", ue2.nr_cell_id, ue2.ts, ue2.rnti, "A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.")]
+    [!|eventprintfjson('event_id_cntr, "Blind DoS", ue2.nr_cell_id, ue2.ts, ue2.rnti, "A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.", "Critical")]
 ]
 
 ```````````````````````````````````````````````````````````````````````
@@ -572,5 +572,5 @@ rule[ue_imsi_notification:
             ue = ue_mf.rnti
     ]
     [$|ue_mf:IMSI_NOTIFICATION]
-    [!|eventprintfjson('event_id_cntr, "UE IMSI Notification", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "A UE with IMSI 2089900004788 has just started registration to the network.")]
+    [!|eventprintfjson('event_id_cntr, "UE IMSI Notification", ue_mf.nr_cell_id, ue_mf.timestamp, ue_mf.rnti, "A UE with IMSI 2089900004788 has just started registration to the network.", "Info")]
 ]

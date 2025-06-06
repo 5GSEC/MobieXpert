@@ -67,18 +67,22 @@ class PBest:
                 # event_dict["Time"] = self.timestamp2str(event_dict["Time"])
             self.event_counter = self.event_counter + 1
 
-            if event_dict["Event Name"] in self.warning_event_list:
-                event_dict["Level"] = "Warning"
+            if event_dict["Level"] == "Warning":
                 formatted_str = json.dumps(event_dict, indent=2)
                 self.logger.warning("[PBest] Warning event detected")
                 self.logger.warning(formatted_str)
                 str_list = [str(v) for v in event_dict.values()]
                 self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), ";".join(str_list))
-            else:
-                event_dict["Level"] = "Critical"
+            elif event_dict["Level"] == "Critical":
                 formatted_str = json.dumps(event_dict, indent=2)
                 self.logger.critical("[PBest] Attack event detected")
                 self.logger.critical(formatted_str)
+                str_list = [str(v) for v in event_dict.values()]
+                self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), ";".join(str_list))
+            elif event_dict["Level"] == "Info":
+                formatted_str = json.dumps(event_dict, indent=2)
+                self.logger.info("[PBest] Info event detected")
+                self.logger.info(formatted_str)
                 str_list = [str(v) for v in event_dict.values()]
                 self.sdl_mgr.store_data_to_sdl(self.SDL_EVENT_NS, str(self.event_counter), ";".join(str_list))
         else:
