@@ -176,13 +176,8 @@ ptype[bs_mobiflow
      mnc:string,                       `| BS meta  - mobile network code
      tac:string,                       `| BS meta  - tracking area code
      report_period:int,                `| BS meta  - report period (ms)
+     status: int                       `| BS meta  - status (1: connected, 2: disconnected)
      `````````````````````````````````````````````````````````
-     connected_ue_cnt:int,             `| BS stats  -
-     idle_ue_cnt:int,                  `| BS stats  -
-     max_ue_cnt:int,                   `| BS stats  -
-     `````````````````````````````````````````````````````````
-     initial_timer:double,             `| BS timer  -
-     inactive_timer:double             `| BS timer  -
 ]
 
 ptype[maintenance_event ts: double]

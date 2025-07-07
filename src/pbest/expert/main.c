@@ -139,7 +139,7 @@ void Engine_UE_MobiFlow_Event(char *token) {
 void Engine_BS_MobiFlow_Event(char *token) {
     struct bs_mobiflow bs;
     int index = 0;
-    int totalFeature = 16; // TODO change this index when updating MobiFlow
+    int totalFeature = 11; // TODO change this index when updating MobiFlow
     while (token != NULL) {
         switch (index) {
             case 0:
@@ -173,19 +173,7 @@ void Engine_BS_MobiFlow_Event(char *token) {
                 bs.report_period = atoi(token);
                 break;
             case 10:
-                bs.connected_ue_cnt = atoi(token);
-                break;
-            case 11:
-                bs.idle_ue_cnt = atoi(token);
-                break;
-            case 12:
-                bs.max_ue_cnt = atoi(token);
-                break;
-            case 13:
-                bs.initial_timer = strtod(token, NULL);
-                break;
-            case 14:
-                bs.inactive_timer = strtod(token, NULL);
+                bs.status = atoi(token);
                 break;
         }
         ++index;
@@ -193,8 +181,8 @@ void Engine_BS_MobiFlow_Event(char *token) {
     }
     if (bs.nr_cell_id != -1 && index == totalFeature) {
         assert_bs_mobiflow(pb_rules, &pb_tsnum, bs.msg_type, bs.msg_id, bs.timestamp, bs.mobiflow_ver, bs.generator_name,
-                           bs.nr_cell_id, bs.mcc, bs.mnc, bs.tac, bs.report_period,
-                           bs.connected_ue_cnt, bs.idle_ue_cnt, bs.max_ue_cnt, bs.initial_timer, bs.inactive_timer, 1.0, "");
+                           bs.nr_cell_id, bs.mcc, bs.mnc, bs.tac, bs.report_period, bs.status,
+                           1.0, "");
         engine(pb_rules, &pb_tsnum);
     }
 }
